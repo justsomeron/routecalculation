@@ -44,19 +44,27 @@ export async function geocodeAddress(
     const url = `${base}/search?format=jsonv2&limit=1&countrycodes=de,at,ch&q=${encodeURIComponent(
       normalized,
     )}`;
-    const res = await fetch(url, { headers: nominatimHeaders() });
-    if (!res.ok) return null;
-    const data = (await res.json()) as Array<{
-      lat: string;
-      lon: string;
-      display_name: string;
-    }>;
-    if (!data.length) return null;
-    return {
-      lat: parseFloat(data[0].lat),
-      lng: parseFloat(data[0].lon),
-      displayName: data[0].display_name,
-    };
+    try {
+      const res = await fetch(url, { headers: nominatimHeaders() });
+      if (!res.ok) {
+        console.error(`Nominatim-Fehler ${res.status} für "${normalized}"`);
+        return null;
+      }
+      const data = (await res.json()) as Array<{
+        lat: string;
+        lon: string;
+        display_name: string;
+      }>;
+      if (!data.length) return null;
+      return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon),
+        displayName: data[0].display_name,
+      };
+    } catch (err) {
+      console.error(`Nominatim nicht erreichbar für "${normalized}":`, err);
+      return null;
+    }
   });
 
   cache.set(normalized, result);
@@ -80,17 +88,25 @@ export async function searchAddress(
     const url = `${base}/search?format=jsonv2&limit=6&countrycodes=de,at,ch&q=${encodeURIComponent(
       normalized,
     )}`;
-    const res = await fetch(url, { headers: nominatimHeaders() });
-    if (!res.ok) return [];
-    const data = (await res.json()) as Array<{
-      lat: string;
-      lon: string;
-      display_name: string;
-    }>;
-    return data.map((d) => ({
-      displayName: d.display_name,
-      lat: parseFloat(d.lat),
-      lng: parseFloat(d.lon),
-    }));
+    try {
+      const res = await fetch(url, { headers: nominatimHeaders() });
+      if (!res.ok) {
+        console.error(`Nominatim-Fehler ${res.status} für "${normalized}"`);
+        return [];
+      }
+      const data = (await res.json()) as Array<{
+        lat: string;
+        lon: string;
+        display_name: string;
+      }>;
+      return data.map((d) => ({
+        displayName: d.display_name,
+        lat: parseFloat(d.lat),
+        lng: parseFloat(d.lon),
+      }));
+    } catch (err) {
+      console.error(`Nominatim nicht erreichbar für "${normalized}":`, err);
+      return [];
+    }
   });
 }
