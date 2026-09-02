@@ -64,6 +64,8 @@ async function findCandidateOrganizations(
 export type RankedCandidate = {
   organizationId: string;
   organizationName: string;
+  lat: number;
+  lng: number;
   toStartDistanceM: number;
   fromDestDistanceM: number;
   totalRoundTripM: number;
@@ -104,6 +106,8 @@ export async function calculateRoute(input: RouteCalculationInput) {
         return {
           organizationId: c.id,
           organizationName: c.name,
+          lat: c.lat,
+          lng: c.lng,
           toStartDistanceM,
           fromDestDistanceM,
           totalRoundTripM:
