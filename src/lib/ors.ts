@@ -78,9 +78,6 @@ export async function getDistanceMatrix(
       destinations: destinationIndices,
       metrics: ["distance"],
       units: "m",
-      // -1 = unbegrenzte Suche nach der nächsten befahrbaren Straße, siehe
-      // getRoute() weiter oben.
-      radiuses: locations.map(() => -1),
     }),
   });
 
