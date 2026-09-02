@@ -11,10 +11,12 @@ const cache = new Map<string, GeocodeResult | null>();
 let lastRequestAt = 0;
 let queue: Promise<unknown> = Promise.resolve();
 
-// Nominatim-Nutzungsrichtlinie: max. 1 Anfrage/Sekunde, aussagekräftiger User-Agent.
+// Photon ist ein öffentlicher, kostenloser Dienst (komoot) - trotzdem aus
+// Fairness gegenüber dem Dienst gedrosselt statt bei jedem Tastendruck neu
+// anzufragen.
 function throttled<T>(fn: () => Promise<T>): Promise<T> {
   const run = queue.then(async () => {
-    const wait = Math.max(0, 1100 - (Date.now() - lastRequestAt));
+    const wait = Math.max(0, 300 - (Date.now() - lastRequestAt));
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));
     lastRequestAt = Date.now();
     return fn();
@@ -23,13 +25,53 @@ function throttled<T>(fn: () => Promise<T>): Promise<T> {
   return run;
 }
 
-function nominatimHeaders() {
+function photonHeaders() {
   return {
     "User-Agent": `MedicalOperationsCenter/1.0 (${
-      process.env.NOMINATIM_EMAIL ?? "kontakt@example.com"
+      process.env.GEOCODER_CONTACT_EMAIL ?? "kontakt@example.com"
     })`,
     "Accept-Language": "de",
   };
+}
+
+// Deutschland/Österreich/Schweiz als grober Suchraum (Bounding Box), damit
+// Ergebnisse aus aller Welt bei mehrdeutigen Namen nicht überwiegen.
+const DACH_BBOX = "5.5,45.6,17.3,55.1";
+
+type PhotonProperties = {
+  name?: string;
+  housenumber?: string;
+  street?: string;
+  postcode?: string;
+  city?: string;
+  town?: string;
+  village?: string;
+  state?: string;
+  country?: string;
+};
+
+type PhotonFeature = {
+  geometry: { coordinates: [number, number] }; // [lng, lat]
+  properties: PhotonProperties;
+};
+
+// Baut aus den strukturierten Photon-Feldern eine kompakte, Google-Maps-
+// artige Bezeichnung. Bei reinen Straßenadressen liefert Photon "name" oft
+// identisch zum Straßennamen - dann wird "name" nicht doppelt angezeigt.
+function formatFeature(p: PhotonProperties): string {
+  const streetLine = [p.street, p.housenumber].filter(Boolean).join(" ");
+  const city = p.city || p.town || p.village;
+  const cityLine = [p.postcode, city].filter(Boolean).join(" ");
+  const poi =
+    p.name && p.name !== p.street && p.name !== city ? p.name : undefined;
+
+  const parts = [poi, streetLine, cityLine].filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : (city ?? p.country ?? "");
+}
+
+function photonUrl(query: string, limit: number) {
+  const base = process.env.PHOTON_URL ?? "https://photon.komoot.io/api";
+  return `${base}/?q=${encodeURIComponent(query)}&limit=${limit}&lang=de&bbox=${DACH_BBOX}`;
 }
 
 export async function geocodeAddress(
@@ -40,29 +82,24 @@ export async function geocodeAddress(
   if (cache.has(normalized)) return cache.get(normalized) ?? null;
 
   const result = await throttled(async () => {
-    const base = process.env.NOMINATIM_URL ?? "https://nominatim.openstreetmap.org";
-    const url = `${base}/search?format=jsonv2&limit=1&countrycodes=de,at,ch&q=${encodeURIComponent(
-      normalized,
-    )}`;
     try {
-      const res = await fetch(url, { headers: nominatimHeaders() });
+      const res = await fetch(photonUrl(normalized, 1), {
+        headers: photonHeaders(),
+      });
       if (!res.ok) {
-        console.error(`Nominatim-Fehler ${res.status} für "${normalized}"`);
+        console.error(`Photon-Fehler ${res.status} für "${normalized}"`);
         return null;
       }
-      const data = (await res.json()) as Array<{
-        lat: string;
-        lon: string;
-        display_name: string;
-      }>;
-      if (!data.length) return null;
+      const data = (await res.json()) as { features: PhotonFeature[] };
+      const feature = data.features?.[0];
+      if (!feature) return null;
       return {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon),
-        displayName: data[0].display_name,
+        lat: feature.geometry.coordinates[1],
+        lng: feature.geometry.coordinates[0],
+        displayName: formatFeature(feature.properties),
       };
     } catch (err) {
-      console.error(`Nominatim nicht erreichbar für "${normalized}":`, err);
+      console.error(`Photon nicht erreichbar für "${normalized}":`, err);
       return null;
     }
   });
@@ -77,46 +114,6 @@ export type AddressSuggestion = {
   lng: number;
 };
 
-type NominatimAddress = {
-  amenity?: string;
-  aeroway?: string;
-  shop?: string;
-  tourism?: string;
-  building?: string;
-  road?: string;
-  pedestrian?: string;
-  house_number?: string;
-  postcode?: string;
-  city?: string;
-  town?: string;
-  village?: string;
-  municipality?: string;
-  county?: string;
-  state?: string;
-  country?: string;
-};
-
-// Baut aus den strukturierten Nominatim-Adressfeldern eine kompakte,
-// Google-Maps-artige Bezeichnung statt der vollen Verwaltungshierarchie
-// (die "display_name" enthält z.B. auch Stadtteil, Landkreis, Bundesland).
-function formatSuggestion(item: {
-  name?: string;
-  display_name: string;
-  address?: NominatimAddress;
-}): string {
-  const a = item.address;
-  if (!a) return item.display_name;
-
-  const poi = item.name || a.amenity || a.aeroway || a.shop || a.tourism;
-  const street = a.road || a.pedestrian;
-  const streetLine = [street, a.house_number].filter(Boolean).join(" ");
-  const city = a.city || a.town || a.village || a.municipality || a.county;
-  const cityLine = [a.postcode, city].filter(Boolean).join(" ");
-
-  const parts = [poi, streetLine, cityLine].filter(Boolean);
-  return parts.length > 0 ? parts.join(", ") : item.display_name;
-}
-
 export async function searchAddress(
   query: string,
 ): Promise<AddressSuggestion[]> {
@@ -124,30 +121,22 @@ export async function searchAddress(
   if (normalized.length < 3) return [];
 
   return throttled(async () => {
-    const base = process.env.NOMINATIM_URL ?? "https://nominatim.openstreetmap.org";
-    const url = `${base}/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=de,at,ch&q=${encodeURIComponent(
-      normalized,
-    )}`;
     try {
-      const res = await fetch(url, { headers: nominatimHeaders() });
+      const res = await fetch(photonUrl(normalized, 6), {
+        headers: photonHeaders(),
+      });
       if (!res.ok) {
-        console.error(`Nominatim-Fehler ${res.status} für "${normalized}"`);
+        console.error(`Photon-Fehler ${res.status} für "${normalized}"`);
         return [];
       }
-      const data = (await res.json()) as Array<{
-        lat: string;
-        lon: string;
-        name?: string;
-        display_name: string;
-        address?: NominatimAddress;
-      }>;
-      return data.map((d) => ({
-        displayName: formatSuggestion(d),
-        lat: parseFloat(d.lat),
-        lng: parseFloat(d.lon),
+      const data = (await res.json()) as { features: PhotonFeature[] };
+      return (data.features ?? []).map((f) => ({
+        displayName: formatFeature(f.properties),
+        lat: f.geometry.coordinates[1],
+        lng: f.geometry.coordinates[0],
       }));
     } catch (err) {
-      console.error(`Nominatim nicht erreichbar für "${normalized}":`, err);
+      console.error(`Photon nicht erreichbar für "${normalized}":`, err);
       return [];
     }
   });

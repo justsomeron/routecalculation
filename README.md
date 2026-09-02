@@ -15,7 +15,7 @@ und Ziel.
 - **Excel-Import** für Transporteur-Stammdaten (Anlegen + Aktualisieren)
 - **Kundenverwaltung** (nicht jeder Verband fährt für jeden Kunden)
 - **Routenkalkulation**: Start/Ziel/Zwischenstopps per Adress-Autocomplete
-  (Nominatim/OSM), Routing über OpenRouteService, für **alle** passenden
+  (Photon/OSM), Routing über OpenRouteService, für **alle** passenden
   Transporteure (bundesweit, kein Entfernungs-Vorfilter) wird der echte
   Gesamtumlauf berechnet (Basis → Start → … → Ziel → zurück zur Basis),
   Top-5-Liste mit „Mehr laden“
@@ -25,7 +25,7 @@ und Ziel.
 ## Tech-Stack
 
 Next.js (App Router, TypeScript) · PostgreSQL + PostGIS · Prisma ·
-Leaflet/OpenStreetMap · OpenRouteService · Nominatim · Nodemailer (SMTP) ·
+Leaflet/OpenStreetMap · OpenRouteService · Photon · Nodemailer (SMTP) ·
 Docker Compose + Caddy (automatisches HTTPS)
 
 ## Lokale Entwicklung
@@ -60,8 +60,8 @@ SEED_ADMIN_EMAIL=deine@adresse.de SEED_ADMIN_PASSWORD=EinSicheresPasswort npm ru
 | `SESSION_SECRET` | Langer, zufälliger String zum Signieren der Login-Sessions – **in Produktion unbedingt ändern** |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | Zugangsdaten des bestehenden Mailservers für Einladungs-/Reset-Mails |
 | `ORS_API_KEY` | API-Key von [openrouteservice.org](https://openrouteservice.org/dev/#/signup) (kostenloses Kontingent reicht dank Matrix-API i. d. R. aus) |
-| `NOMINATIM_URL` | Standard: `https://nominatim.openstreetmap.org`. Bei hohem Volumen ggf. eigenen Nominatim-Server eintragen |
-| `NOMINATIM_EMAIL` | Kontakt-E-Mail für den User-Agent (von Nominatim vorgeschrieben) |
+| `PHOTON_URL` | Standard: `https://photon.komoot.io/api`. Bei hohem Volumen ggf. eigenen Photon-Server eintragen |
+| `GEOCODER_CONTACT_EMAIL` | Kontakt-E-Mail für den User-Agent (Höflichkeitsstandard, kein Zwang) |
 | `APP_URL` | Öffentliche Basis-URL der App (für Links in E-Mails) |
 
 ## Excel-Import: erwartete Spalten
@@ -142,9 +142,9 @@ docker compose up -d --build
 - **Fahrzeugprofil**: Alle Fahrzeugtypen werden aktuell mit dem
   ORS-Routing-Profil „driving-car“ berechnet (kein spezielles
   Rettungswagen-Profil verfügbar).
-- **Nominatim**: Öffentlicher Server, Nutzungsrichtlinie max. 1 Anfrage/Sek.
-  (im Code per Warteschlange erzwungen). Bei sehr hohem Suchvolumen ggf.
-  einen eigenen Nominatim-Server betreiben und `NOMINATIM_URL` anpassen.
+- **Photon**: Öffentlicher Server (komoot), aus Fairness gedrosselt (im Code
+  per Warteschlange). Bei sehr hohem Suchvolumen ggf. einen eigenen
+  Photon-Server betreiben und `PHOTON_URL` anpassen.
 - **OpenRouteService Free-Tier**: Dank Matrix-API (ein Call für alle
   Kandidaten) reicht das kostenlose Kontingent für den beschriebenen
   Anwendungsfall i. d. R. aus. Bei Bedarf ist ein Umstieg auf selbst
