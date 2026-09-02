@@ -75,13 +75,11 @@ export type RankedCandidate = {
 
 async function rankCandidates(
   candidates: CandidateOrg[],
-  input: RouteCalculationInput,
+  snappedStart: LngLat,
+  snappedDestination: LngLat,
   patientRouteDistanceM: number,
 ): Promise<RankedCandidate[]> {
-  const destinations: LngLat[] = [
-    [input.start.lng, input.start.lat],
-    [input.destination.lng, input.destination.lat],
-  ];
+  const destinations: LngLat[] = [snappedStart, snappedDestination];
 
   const ranked: RankedCandidate[] = [];
 
@@ -123,10 +121,26 @@ export async function calculateRoute(input: RouteCalculationInput) {
   ];
 
   const patientRoute = await getRoute(waypoints);
+
+  // ORS "snappt" jeden Wegpunkt beim Routing auf den nächsten befahrbaren
+  // Straßenpunkt. Für die Matrix-Anfrage (die keinen "radiuses"-Parameter
+  // kennt) genau diese bereits gesnappten Koordinaten verwenden statt der
+  // rohen Adresskoordinate - so kann bei Punkten wie Flughafen-Terminals
+  // kein "could not find routable point"-Fehler mehr auftreten, weil ORS
+  // diese Koordinate gerade selbst für die Route benutzt hat.
+  const routeCoords = patientRoute.geometry.coordinates as LngLat[];
+  const snappedStart = routeCoords[0];
+  const snappedDestination = routeCoords[routeCoords.length - 1];
+
   const candidates = await findCandidateOrganizations(input);
   const ranked =
     candidates.length > 0
-      ? await rankCandidates(candidates, input, patientRoute.distanceM)
+      ? await rankCandidates(
+          candidates,
+          snappedStart,
+          snappedDestination,
+          patientRoute.distanceM,
+        )
       : [];
 
   const routeRequest = await prisma.routeRequest.create({
