@@ -15,7 +15,7 @@ const pointSchema = z.object({
 
 const schema = z.object({
   start: pointSchema,
-  stops: z.array(pointSchema).max(3).default([]),
+  stops: z.array(pointSchema).max(5).default([]),
   destination: pointSchema,
   vehicleType: z.enum(["PKW", "VAN", "KTW", "N_KTW", "RTW", "ITW"]),
   needsDoctor: z.boolean().default(false),

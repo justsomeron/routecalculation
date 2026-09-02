@@ -14,7 +14,7 @@ export default async function DashboardPage() {
         Routenkalkulation
       </h1>
       <p className="mt-1 text-slate-500">
-        Start, Ziel und bis zu drei Zwischenstopps eingeben. Die
+        Start, Ziel und bis zu fünf Zwischenstopps eingeben. Die
         wirtschaftlichsten Transporteure entlang der gesamten Route werden
         aufsteigend nach Gesamtumlauf angezeigt.
       </p>

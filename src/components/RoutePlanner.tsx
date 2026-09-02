@@ -61,19 +61,14 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
   const [totalCandidates, setTotalCandidates] = useState(0);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
 
-  // Ein Eintrag pro Teilstrecke (Start->Stopp1, ..., ->Ziel). Markiert, ob
-  // der Patient auf dieser Teilstrecke tatsächlich mitfährt (z.B. nicht bei
-  // einer Leerfahrt zum Abholen einer Medical Crew). Standard: alles ist
-  // Patiententransport.
+  // Ein Eintrag pro Teilstrecke (Start->Stopp1, ..., ->Ziel), Index i steht
+  // für die Strecke, die am i-ten Punkt (Start bzw. Zwischenstopp i)
+  // beginnt. Markiert, ob der Patient auf dieser Teilstrecke tatsächlich
+  // mitfährt (z.B. nicht bei einer Leerfahrt zum Abholen einer Medical
+  // Crew). Standard: alles ist Patiententransport.
   const [patientLegs, setPatientLegs] = useState<boolean[]>([true]);
 
-  const filledStops = stops.filter((s): s is AddressValue => !!s);
-  const legLabels = [
-    "Start",
-    ...filledStops.map((_, i) => `Zwischenstopp ${i + 1}`),
-    "Ziel",
-  ];
-  const legsCount = legLabels.length - 1;
+  const legsCount = stops.length + 1;
 
   useEffect(() => {
     setPatientLegs((prev) =>
@@ -90,7 +85,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
   }
 
   function addStop() {
-    if (stops.length >= 3) return;
+    if (stops.length >= 5) return;
     setStops((s) => [...s, null]);
   }
 
@@ -208,28 +203,56 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
           className="space-y-4 rounded-lg border border-slate-200 bg-white p-4"
         >
           <AddressAutocomplete label="Start" value={start} onChange={setStart} placeholder="Abholadresse" />
+          {legsCount > 1 && (
+            <div className="-mt-2">
+              <label className="flex items-center gap-2 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={patientLegs[0] ?? true}
+                  onChange={() => toggleLeg(0)}
+                />
+                Patientenstrecke
+              </label>
+              <p className="mt-0.5 text-xs text-slate-400">
+                Markiert die Teilstrecke ab diesem Punkt (z. B. abwählen bei
+                einer Leerfahrt zum Abholen einer Medical Crew)
+              </p>
+            </div>
+          )}
 
           {stops.map((s, i) => (
-            <div key={i} className="flex items-end gap-2">
-              <div className="flex-1">
-                <AddressAutocomplete
-                  label={`Zwischenstopp ${i + 1}`}
-                  value={s}
-                  onChange={(v) =>
-                    setStops((arr) => arr.map((x, idx) => (idx === i ? v : x)))
-                  }
-                />
+            <div key={i}>
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <AddressAutocomplete
+                    label={`Zwischenstopp ${i + 1}`}
+                    value={s}
+                    onChange={(v) =>
+                      setStops((arr) => arr.map((x, idx) => (idx === i ? v : x)))
+                    }
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeStop(i)}
+                  className="mb-0.5 rounded-md border border-slate-300 px-2 py-2 text-xs text-slate-600 hover:bg-slate-50"
+                >
+                  Entfernen
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => removeStop(i)}
-                className="mb-0.5 rounded-md border border-slate-300 px-2 py-2 text-xs text-slate-600 hover:bg-slate-50"
-              >
-                Entfernen
-              </button>
+              {legsCount > 1 && (
+                <label className="mt-1 flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={patientLegs[i + 1] ?? true}
+                    onChange={() => toggleLeg(i + 1)}
+                  />
+                  Patientenstrecke
+                </label>
+              )}
             </div>
           ))}
-          {stops.length < 3 && (
+          {stops.length < 5 && (
             <button
               type="button"
               onClick={addStop}
@@ -245,28 +268,6 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
             onChange={setDestination}
             placeholder="Zieladresse"
           />
-
-          {legsCount > 1 && (
-            <div>
-              <p className="mb-2 text-xs font-medium text-slate-600">
-                Auf welchen Teilstrecken ist der Patient tatsächlich an
-                Bord? (für die Statistik/Abrechnung – die Wirtschaftlichkeits-
-                Berechnung berücksichtigt weiterhin die gesamte Fahrt)
-              </p>
-              <div className="space-y-1.5">
-                {patientLegs.map((checked, i) => (
-                  <label key={i} className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleLeg(i)}
-                    />
-                    {legLabels[i]} → {legLabels[i + 1]}
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-600">

@@ -2,7 +2,7 @@
 
 Webapp für die Routenkalkulation im Medical Operations Center: Transporteure
 (Kreisverbände, Ortsvereine, externe Dienstleister) verwalten und für eine
-Patientenfahrt (Start, Ziel, bis zu 3 Zwischenstopps) die wirtschaftlichsten
+Patientenfahrt (Start, Ziel, bis zu 5 Zwischenstopps) die wirtschaftlichsten
 Transporteure **entlang der gesamten Route** finden – nicht nur rund um Start
 und Ziel.
 

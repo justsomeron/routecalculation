@@ -12,7 +12,7 @@ export type RoutePoint = {
 export type RouteCalculationInput = {
   requestedById: string;
   start: RoutePoint;
-  stops: RoutePoint[]; // 0-3 Zwischenstopps, in Reihenfolge
+  stops: RoutePoint[]; // 0-5 Zwischenstopps, in Reihenfolge
   destination: RoutePoint;
   vehicleType: VehicleType;
   needsDoctor: boolean;
