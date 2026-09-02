@@ -77,6 +77,46 @@ export type AddressSuggestion = {
   lng: number;
 };
 
+type NominatimAddress = {
+  amenity?: string;
+  aeroway?: string;
+  shop?: string;
+  tourism?: string;
+  building?: string;
+  road?: string;
+  pedestrian?: string;
+  house_number?: string;
+  postcode?: string;
+  city?: string;
+  town?: string;
+  village?: string;
+  municipality?: string;
+  county?: string;
+  state?: string;
+  country?: string;
+};
+
+// Baut aus den strukturierten Nominatim-Adressfeldern eine kompakte,
+// Google-Maps-artige Bezeichnung statt der vollen Verwaltungshierarchie
+// (die "display_name" enthält z.B. auch Stadtteil, Landkreis, Bundesland).
+function formatSuggestion(item: {
+  name?: string;
+  display_name: string;
+  address?: NominatimAddress;
+}): string {
+  const a = item.address;
+  if (!a) return item.display_name;
+
+  const poi = item.name || a.amenity || a.aeroway || a.shop || a.tourism;
+  const street = a.road || a.pedestrian;
+  const streetLine = [street, a.house_number].filter(Boolean).join(" ");
+  const city = a.city || a.town || a.village || a.municipality || a.county;
+  const cityLine = [a.postcode, city].filter(Boolean).join(" ");
+
+  const parts = [poi, streetLine, cityLine].filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : item.display_name;
+}
+
 export async function searchAddress(
   query: string,
 ): Promise<AddressSuggestion[]> {
@@ -85,7 +125,7 @@ export async function searchAddress(
 
   return throttled(async () => {
     const base = process.env.NOMINATIM_URL ?? "https://nominatim.openstreetmap.org";
-    const url = `${base}/search?format=jsonv2&limit=6&countrycodes=de,at,ch&q=${encodeURIComponent(
+    const url = `${base}/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=de,at,ch&q=${encodeURIComponent(
       normalized,
     )}`;
     try {
@@ -97,10 +137,12 @@ export async function searchAddress(
       const data = (await res.json()) as Array<{
         lat: string;
         lon: string;
+        name?: string;
         display_name: string;
+        address?: NominatimAddress;
       }>;
       return data.map((d) => ({
-        displayName: d.display_name,
+        displayName: formatSuggestion(d),
         lat: parseFloat(d.lat),
         lng: parseFloat(d.lon),
       }));

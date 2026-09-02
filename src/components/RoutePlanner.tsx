@@ -37,6 +37,11 @@ function km(meters: number) {
   return (meters / 1000).toLocaleString("de-DE", { maximumFractionDigits: 1 });
 }
 
+// Ab dieser Entfernung des nächstgelegenen Transporteurs ein Hinweis, dass es
+// sich um ein ungewöhnlich weit entferntes Ergebnis handelt (z.B. bei sehr
+// speziellen Anforderungen, die kaum ein Transporteur erfüllt).
+const FAR_RESULT_THRESHOLD_M = 150_000;
+
 export function RoutePlanner({ customers }: { customers: Customer[] }) {
   const [start, setStart] = useState<AddressValue | null>(null);
   const [stops, setStops] = useState<(AddressValue | null)[]>([]);
@@ -54,7 +59,6 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
   const [patientRouteDistanceM, setPatientRouteDistanceM] = useState<number | null>(null);
   const [totalCandidates, setTotalCandidates] = useState(0);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [usedNationwideFallback, setUsedNationwideFallback] = useState(false);
 
   function addStop() {
     if (stops.length >= 3) return;
@@ -105,7 +109,6 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
       setPatientRouteDistanceM(data.patientRouteDistanceM);
       setTotalCandidates(data.totalCandidates);
       setCandidates(data.candidates);
-      setUsedNationwideFallback(data.usedNationwideFallback);
     } finally {
       setLoading(false);
     }
@@ -290,10 +293,12 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
           <RouteMap waypoints={waypoints} routeLine={routeLine} candidates={mapCandidates} />
         </div>
 
-        {candidates.length > 0 && usedNationwideFallback && (
+        {candidates.length > 0 && candidates[0].totalRoundTripM > FAR_RESULT_THRESHOLD_M && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-            Kein passender Transporteur im üblichen Umkreis der Route
-            gefunden – es werden die bundesweit nächstgelegenen angezeigt.
+            Hinweis: Der nächstgelegene passende Transporteur ist mit{" "}
+            {km(candidates[0].totalRoundTripM)} km Gesamtumlauf ungewöhnlich
+            weit entfernt. Prüfe ggf. Fahrzeugtyp-, Arzt-/Tempurmatratzen- oder
+            Kunden-Anforderung.
           </div>
         )}
 

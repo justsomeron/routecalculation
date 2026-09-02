@@ -15,9 +15,10 @@ und Ziel.
 - **Excel-Import** für Transporteur-Stammdaten (Anlegen + Aktualisieren)
 - **Kundenverwaltung** (nicht jeder Verband fährt für jeden Kunden)
 - **Routenkalkulation**: Start/Ziel/Zwischenstopps per Adress-Autocomplete
-  (Nominatim/OSM), Routing über OpenRouteService, Korridor-Suche entlang der
-  gesamten Strecke via PostGIS, Ranking nach **Gesamtumlauf** (Basis → Start
-  → … → Ziel → zurück zur Basis), Top-5-Liste mit „Mehr laden“
+  (Nominatim/OSM), Routing über OpenRouteService, für **alle** passenden
+  Transporteure (bundesweit, kein Entfernungs-Vorfilter) wird der echte
+  Gesamtumlauf berechnet (Basis → Start → … → Ziel → zurück zur Basis),
+  Top-5-Liste mit „Mehr laden“
 - **Statistik/Logging**: Anfrageverlauf je Disponent (Benutzerprofil) und
   aggregierte Auswertung für Administratoren
 
@@ -62,7 +63,6 @@ SEED_ADMIN_EMAIL=deine@adresse.de SEED_ADMIN_PASSWORD=EinSicheresPasswort npm ru
 | `NOMINATIM_URL` | Standard: `https://nominatim.openstreetmap.org`. Bei hohem Volumen ggf. eigenen Nominatim-Server eintragen |
 | `NOMINATIM_EMAIL` | Kontakt-E-Mail für den User-Agent (von Nominatim vorgeschrieben) |
 | `APP_URL` | Öffentliche Basis-URL der App (für Links in E-Mails) |
-| `ROUTE_CORRIDOR_BUFFER_M` | Suchradius um die Route in Metern (Standard 30000 = 30 km) |
 
 ## Excel-Import: erwartete Spalten
 
@@ -150,6 +150,17 @@ docker compose up -d --build
   Anwendungsfall i. d. R. aus. Bei Bedarf ist ein Umstieg auf selbst
   gehostetes OSRM möglich, ohne die App-Logik umzubauen (nur `src/lib/ors.ts`
   betroffen).
+- **Kein geografischer Vorfilter bei der Transporteur-Suche**: Es wird für
+  *alle* Transporteure, die Fahrzeugtyp/Arzt/Tempurmatratze/Kunde erfüllen,
+  der echte Gesamtumlauf über die Matrix-API berechnet (bundesweit, in
+  Batches von 1000 pro Aufruf) statt vorher nach Entfernung zur Route zu
+  filtern. Ein reiner Entfernungs-Vorfilter (z. B. "nur Transporteure im
+  30-km-Korridor") wäre ungenau: Ein Transporteur, der weiter von der
+  Routenlinie entfernt liegt, kann trotzdem einen kürzeren echten
+  Gesamtumlauf haben, wenn er günstig zu Start *und* Ziel liegt. Bei sehr
+  großer Anzahl an Transporteuren (deutlich über ca. 1000 gleichzeitig
+  passenden) ließe sich bei Bedarf wieder ein Vorfilter ergänzen; für den
+  hier beschriebenen Anwendungsfall ist das nicht nötig.
 
 ## Offene Punkte für den Produktivbetrieb
 
