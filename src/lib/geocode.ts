@@ -48,6 +48,8 @@ type PhotonProperties = {
   village?: string;
   state?: string;
   country?: string;
+  osm_key?: string;
+  osm_value?: string;
 };
 
 type PhotonFeature = {
@@ -55,15 +57,50 @@ type PhotonFeature = {
   properties: PhotonProperties;
 };
 
+// OSM taggt in Deutschland z.B. häufig eine Bushaltestelle direkt mit dem
+// Namen "Krankenhaus" oder "Flughafen" - ohne Kennzeichnung nicht vom
+// eigentlichen Gebäude zu unterscheiden. Nur eine Auswahl an für die
+// Einsatzplanung relevanten/verwirrenden Kategorien, keine vollständige Liste.
+const TYPE_LABELS: Record<string, string> = {
+  "highway:bus_stop": "Bushaltestelle",
+  "railway:tram_stop": "Tram-Haltestelle",
+  "railway:station": "Bahnhof",
+  "railway:halt": "Haltepunkt",
+  "public_transport:platform": "Haltestelle",
+  "public_transport:stop_position": "Haltestelle",
+  "amenity:hospital": "Krankenhaus",
+  "amenity:clinic": "Klinik",
+  "amenity:doctors": "Arztpraxis",
+  "amenity:pharmacy": "Apotheke",
+  "amenity:nursing_home": "Pflegeheim",
+  "aeroway:aerodrome": "Flughafen",
+  "aeroway:terminal": "Flughafen-Terminal",
+};
+
+function typeLabel(p: PhotonProperties): string | undefined {
+  if (!p.osm_key || !p.osm_value) return undefined;
+  return TYPE_LABELS[`${p.osm_key}:${p.osm_value}`];
+}
+
 // Baut aus den strukturierten Photon-Feldern eine kompakte, Google-Maps-
 // artige Bezeichnung. Bei reinen Straßenadressen liefert Photon "name" oft
 // identisch zum Straßennamen - dann wird "name" nicht doppelt angezeigt.
+// Der Typ (z.B. "Bushaltestelle" vs. "Krankenhaus") wird angehängt, wenn er
+// zur Unterscheidung gleichnamiger Treffer hilfreich ist.
 function formatFeature(p: PhotonProperties): string {
   const streetLine = [p.street, p.housenumber].filter(Boolean).join(" ");
   const city = p.city || p.town || p.village;
   const cityLine = [p.postcode, city].filter(Boolean).join(" ");
-  const poi =
+  const poiName =
     p.name && p.name !== p.street && p.name !== city ? p.name : undefined;
+  const rawLabel = typeLabel(p);
+  // Label weglassen, wenn der Name das Wort schon enthält (z.B. "Flughafen
+  // Innsbruck" braucht kein zusätzliches "(Flughafen)").
+  const label =
+    rawLabel && !poiName?.toLowerCase().includes(rawLabel.toLowerCase())
+      ? rawLabel
+      : undefined;
+  const poi = poiName && label ? `${poiName} (${label})` : poiName;
 
   const parts = [poi, streetLine, cityLine].filter(Boolean);
   return parts.length > 0 ? parts.join(", ") : (city ?? p.country ?? "");
