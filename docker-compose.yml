@@ -14,14 +14,34 @@ services:
       timeout: 5s
       retries: 10
 
+  # Einmaliger Dienst: wendet Prisma-Migrationen an (inkl. PostGIS-Extension)
+  # und beendet sich danach. Nutzt das "builder"-Image mit vollem node_modules,
+  # damit die Prisma-CLI und alle ihre Abhängigkeiten sicher vorhanden sind.
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://routecalc:routecalc@db:5432/routecalc?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["npx", "prisma", "migrate", "deploy"]
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
+      target: runner
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     env_file:
       - .env
     environment:
