@@ -1,0 +1,171 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  DISPATCHER
+}
+
+enum TokenPurpose {
+  INVITE
+  PASSWORD_RESET
+}
+
+enum OrganizationType {
+  KREISVERBAND
+  ORTSVEREIN
+  EXTERN
+}
+
+enum VehicleType {
+  PKW
+  VAN
+  KTW
+  N_KTW
+  RTW
+  ITW
+}
+
+model User {
+  id                String        @id @default(cuid())
+  email             String        @unique
+  name              String
+  passwordHash      String?
+  role              Role          @default(DISPATCHER)
+  active            Boolean       @default(true)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  invitedById       String?
+  invitedBy         User?         @relation("UserInvites", fields: [invitedById], references: [id])
+  invitedUsers      User[]        @relation("UserInvites")
+  tokens            Token[]
+  routeRequests     RouteRequest[]
+}
+
+model Token {
+  id         String       @id @default(cuid())
+  userId     String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String       @unique
+  purpose    TokenPurpose
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime     @default(now())
+
+  @@index([userId])
+}
+
+model Organization {
+  id                      String              @id @default(cuid())
+  name                    String
+  type                    OrganizationType
+  externalRef             String?             @unique
+  street                  String?
+  postalCode              String?
+  city                    String?
+  country                 String              @default("Deutschland")
+  lat                     Float
+  lng                     Float
+  hasPkw                  Boolean             @default(false)
+  hasVan                  Boolean             @default(false)
+  hasKtw                  Boolean             @default(false)
+  hasNKtw                 Boolean             @default(false)
+  hasRtw                  Boolean             @default(false)
+  hasItw                  Boolean             @default(false)
+  hasDoctor               Boolean             @default(false)
+  hasTemperingMattress    Boolean             @default(false)
+  contactName             String?
+  contactPhone            String?
+  contactEmail            String?
+  notes                   String?
+  active                  Boolean             @default(true)
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  customers               OrganizationCustomer[]
+  candidateResults        RouteRequestCandidate[]
+
+  @@index([lat, lng])
+}
+
+model Customer {
+  id            String                  @id @default(cuid())
+  name          String                  @unique
+  active        Boolean                 @default(true)
+  notes         String?
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  organizations OrganizationCustomer[]
+  routeRequests RouteRequest[]
+}
+
+model OrganizationCustomer {
+  id             String       @id @default(cuid())
+  organizationId String
+  customerId     String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer       Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, customerId])
+}
+
+model RouteRequest {
+  id                          String                   @id @default(cuid())
+  requestedById               String
+  requestedBy                 User                     @relation(fields: [requestedById], references: [id])
+  customerId                  String?
+  customer                    Customer?                @relation(fields: [customerId], references: [id])
+  vehicleType                 VehicleType
+  needsDoctor                 Boolean                  @default(false)
+  needsTemperingMattress      Boolean                  @default(false)
+  startAddress                String
+  startLat                    Float
+  startLng                    Float
+  destinationAddress          String
+  destLat                     Float
+  destLng                     Float
+  totalPatientRouteDistanceM  Float
+  routeGeoJson                Json?
+  createdAt                   DateTime                 @default(now())
+  stops                       RouteRequestStop[]
+  candidates                  RouteRequestCandidate[]
+
+  @@index([requestedById])
+  @@index([createdAt])
+}
+
+model RouteRequestStop {
+  id             String       @id @default(cuid())
+  routeRequestId String
+  routeRequest   RouteRequest @relation(fields: [routeRequestId], references: [id], onDelete: Cascade)
+  orderIndex     Int
+  address        String
+  lat            Float
+  lng            Float
+}
+
+model RouteRequestCandidate {
+  id                  String        @id @default(cuid())
+  routeRequestId      String
+  routeRequest        RouteRequest  @relation(fields: [routeRequestId], references: [id], onDelete: Cascade)
+  organizationId      String?
+  organization        Organization? @relation(fields: [organizationId], references: [id])
+  organizationName    String
+  rank                Int
+  toStartDistanceM    Float
+  fromDestDistanceM   Float
+  totalRoundTripM     Float
+
+  @@index([routeRequestId])
+}
