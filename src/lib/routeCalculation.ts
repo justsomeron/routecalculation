@@ -36,6 +36,7 @@ type CandidateOrg = { id: string; name: string; lat: number; lng: number };
 async function findCandidateOrganizations(
   input: RouteCalculationInput,
   routeGeoJson: GeoJSON.LineString,
+  restrictToCorridor: boolean,
 ): Promise<CandidateOrg[]> {
   const vehicleColumn = VEHICLE_COLUMN[input.vehicleType];
 
@@ -53,11 +54,15 @@ async function findCandidateOrganizations(
           WHERE oc."organizationId" = o.id AND oc."customerId" = ${input.customerId ?? null}
         )
       )
-      AND ST_DWithin(
+      ${
+        restrictToCorridor
+          ? Prisma.sql`AND ST_DWithin(
         ST_SetSRID(ST_MakePoint(o.lng, o.lat), 4326)::geography,
         ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(routeGeoJson)}), 4326)::geography,
         ${CORRIDOR_BUFFER_M}
-      )
+      )`
+          : Prisma.empty
+      }
   `);
 }
 
@@ -80,10 +85,24 @@ export async function calculateRoute(input: RouteCalculationInput) {
 
   const patientRoute = await getRoute(waypoints);
 
-  const candidates = await findCandidateOrganizations(
+  let candidates = await findCandidateOrganizations(
     input,
     patientRoute.geometry,
+    true,
   );
+
+  // Falls im Korridor niemand Passendes liegt, lieber bundesweit die
+  // nächstgelegenen zeigen als "keine Transporteure gefunden" - der
+  // Dispo braucht immer eine Antwort, auch wenn die Anfahrt weit ist.
+  let usedNationwideFallback = false;
+  if (candidates.length === 0) {
+    candidates = await findCandidateOrganizations(
+      input,
+      patientRoute.geometry,
+      false,
+    );
+    usedNationwideFallback = candidates.length > 0;
+  }
 
   let ranked: RankedCandidate[] = [];
 
@@ -159,5 +178,6 @@ export async function calculateRoute(input: RouteCalculationInput) {
     patientRouteGeometry: patientRoute.geometry,
     totalCandidates: ranked.length,
     candidates: ranked.slice(0, 5),
+    usedNationwideFallback,
   };
 }

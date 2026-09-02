@@ -54,6 +54,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
   const [patientRouteDistanceM, setPatientRouteDistanceM] = useState<number | null>(null);
   const [totalCandidates, setTotalCandidates] = useState(0);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [usedNationwideFallback, setUsedNationwideFallback] = useState(false);
 
   function addStop() {
     if (stops.length >= 3) return;
@@ -104,6 +105,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
       setPatientRouteDistanceM(data.patientRouteDistanceM);
       setTotalCandidates(data.totalCandidates);
       setCandidates(data.candidates);
+      setUsedNationwideFallback(data.usedNationwideFallback);
     } finally {
       setLoading(false);
     }
@@ -287,6 +289,13 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
         <div className="h-[420px] overflow-hidden rounded-lg border border-slate-200">
           <RouteMap waypoints={waypoints} routeLine={routeLine} candidates={mapCandidates} />
         </div>
+
+        {candidates.length > 0 && usedNationwideFallback && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            Kein passender Transporteur im üblichen Umkreis der Route
+            gefunden – es werden die bundesweit nächstgelegenen angezeigt.
+          </div>
+        )}
 
         {candidates.length > 0 && (
           <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
