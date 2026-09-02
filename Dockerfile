@@ -1,4 +1,7 @@
 FROM node:22-alpine AS base
+# Prisma braucht OpenSSL für den Query-Engine-Download/-Betrieb; Alpine hat
+# das standardmäßig nicht installiert.
+RUN apk add --no-cache openssl
 
 FROM base AS deps
 WORKDIR /app
