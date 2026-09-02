@@ -84,10 +84,16 @@ export function AddressAutocomplete({
         </label>
       )}
       <input
+        type="text"
         value={query}
         placeholder={placeholder}
         onChange={(e) => onInputChange(e.target.value)}
         onFocus={() => suggestions.length > 0 && setOpen(true)}
+        autoComplete="off"
+        data-1p-ignore
+        data-lpignore="true"
+        data-bwignore="true"
+        data-form-type="other"
         className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
       />
       {loading && (

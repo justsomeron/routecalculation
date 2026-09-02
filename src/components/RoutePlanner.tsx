@@ -172,6 +172,8 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
       <div>
         <form
           onSubmit={onSubmit}
+          autoComplete="off"
+          data-1p-ignore
           className="space-y-4 rounded-lg border border-slate-200 bg-white p-4"
         >
           <AddressAutocomplete label="Start" value={start} onChange={setStart} placeholder="Abholadresse" />
