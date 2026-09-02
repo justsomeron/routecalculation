@@ -24,17 +24,30 @@ const vehicleLabels: Record<VehicleType, string> = {
 type Candidate = {
   organizationId: string;
   organizationName: string;
+  street: string | null;
+  postalCode: string | null;
+  city: string | null;
   lat: number;
   lng: number;
   toStartDistanceM: number;
   fromDestDistanceM: number;
   totalRoundTripM: number;
+  totalRoundTripWithBufferM: number;
 };
 
 type Customer = { id: string; name: string };
 
+// Immer auf den nächsthöheren Kilometer aufrunden (nie ab-/kaufmännisch
+// runden) - sicherheitshalber für Planung/Abrechnung.
 function km(meters: number) {
-  return (meters / 1000).toLocaleString("de-DE", { maximumFractionDigits: 1 });
+  return Math.ceil(meters / 1000).toLocaleString("de-DE");
+}
+
+function candidateAddress(c: Candidate): string | null {
+  const line = [c.street, [c.postalCode, c.city].filter(Boolean).join(" ")]
+    .filter(Boolean)
+    .join(", ");
+  return line || null;
 }
 
 // Ab dieser Entfernung des nächstgelegenen Transporteurs ein Hinweis, dass es
@@ -155,15 +168,26 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
           toStartDistanceM: number;
           fromDestDistanceM: number;
           totalRoundTripM: number;
-          organization: { lat: number; lng: number } | null;
+          totalRoundTripWithBufferM: number;
+          organization: {
+            lat: number;
+            lng: number;
+            street: string | null;
+            postalCode: string | null;
+            city: string | null;
+          } | null;
         }) => ({
           organizationId: c.organizationId ?? "",
           organizationName: c.organizationName,
+          street: c.organization?.street ?? null,
+          postalCode: c.organization?.postalCode ?? null,
+          city: c.organization?.city ?? null,
           lat: c.organization?.lat ?? 0,
           lng: c.organization?.lng ?? 0,
           toStartDistanceM: c.toStartDistanceM,
           fromDestDistanceM: c.fromDestDistanceM,
           totalRoundTripM: c.totalRoundTripM,
+          totalRoundTripWithBufferM: c.totalRoundTripWithBufferM,
         }),
       );
       setCandidates((cs) => [...cs, ...more]);
@@ -173,12 +197,26 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
   }
 
   const waypoints: MapPoint[] = [
-    ...(start ? [{ lat: start.lat, lng: start.lng, label: "S" }] : []),
+    ...(start
+      ? [{ lat: start.lat, lng: start.lng, label: "S", name: start.address }]
+      : []),
     ...stops
       .filter((s): s is AddressValue => !!s)
-      .map((s, i) => ({ lat: s.lat, lng: s.lng, label: `Z${i + 1}` })),
+      .map((s, i) => ({
+        lat: s.lat,
+        lng: s.lng,
+        label: `${i + 1}`,
+        name: s.address,
+      })),
     ...(destination
-      ? [{ lat: destination.lat, lng: destination.lng, label: "Z" }]
+      ? [
+          {
+            lat: destination.lat,
+            lng: destination.lng,
+            label: "Z",
+            name: destination.address,
+          },
+        ]
       : []),
   ];
 
@@ -386,6 +424,14 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
                     <td className="px-4 py-3 text-slate-500">{i + 1}</td>
                     <td className="px-4 py-3 font-medium text-slate-900">
                       {c.organizationName}
+                      {candidateAddress(c) && (
+                        <>
+                          <br />
+                          <span className="text-xs font-normal text-slate-400">
+                            {candidateAddress(c)}
+                          </span>
+                        </>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-slate-600">
                       {km(c.toStartDistanceM)} km
@@ -394,7 +440,18 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
                       {km(c.fromDestDistanceM)} km
                     </td>
                     <td className="px-4 py-3 font-semibold text-slate-900">
-                      {km(c.totalRoundTripM)} km
+                      {km(c.totalRoundTripWithBufferM)} km
+                      {c.totalRoundTripWithBufferM > c.totalRoundTripM && (
+                        <>
+                          <br />
+                          <span className="text-xs font-normal text-slate-400">
+                            inkl. {km(
+                              c.totalRoundTripWithBufferM - c.totalRoundTripM,
+                            )}{" "}
+                            km Puffer
+                          </span>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}

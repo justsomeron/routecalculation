@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 type Customer = {
   id: string;
@@ -123,7 +124,18 @@ export default function CustomersPage() {
             {customers.map((c) => (
               <tr key={c.id}>
                 <td className="px-4 py-3 font-medium text-slate-900">
-                  {c.name}
+                  <Link
+                    href={`/admin/customers/${c.id}`}
+                    className="hover:underline"
+                  >
+                    {c.name}
+                  </Link>
+                  <Link
+                    href={`/admin/customers/${c.id}`}
+                    className="ml-2 text-xs font-normal text-blue-600 hover:underline"
+                  >
+                    Puffer bearbeiten →
+                  </Link>
                 </td>
                 <td className="px-4 py-3 text-slate-600">
                   {c._count.organizations}

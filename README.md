@@ -21,6 +21,12 @@ und Ziel.
   Top-5-Liste mit „Mehr laden“
 - **Statistik/Logging**: Anfrageverlauf je Disponent (Benutzerprofil) und
   aggregierte Auswertung für Administratoren
+- **Puffer-Staffel** (Einstellungen): Administratoren können einen nach
+  Gesamtumlauf gestaffelten km-Aufschlag definieren (z. B. „< 50 km: kein
+  Puffer, 50–150 km: 5 km, > 150 km: 15 km“), der auf den angezeigten
+  Gesamtumlauf aufgeschlagen wird (die Wirtschaftlichkeits-Rangfolge selbst
+  bleibt unbeeinflusst). Pro Kunde individualisierbar oder deaktivierbar –
+  eine kundenspezifische Staffel ersetzt die allgemeine, es wird nie addiert.
 
 ## Tech-Stack
 

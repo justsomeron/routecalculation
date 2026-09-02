@@ -38,6 +38,12 @@ enum VehicleType {
   ITW
 }
 
+enum BufferMode {
+  DEFAULT // allgemeine (globale) Staffel verwenden
+  CUSTOM  // eigene Staffel dieses Kunden verwenden
+  NONE    // kein Puffer für diesen Kunden
+}
+
 model User {
   id                String        @id @default(cuid())
   email             String        @unique
@@ -104,10 +110,28 @@ model Customer {
   name          String                  @unique
   active        Boolean                 @default(true)
   notes         String?
+  bufferMode    BufferMode              @default(DEFAULT)
   createdAt     DateTime                @default(now())
   updatedAt     DateTime                @updatedAt
   organizations OrganizationCustomer[]
   routeRequests RouteRequest[]
+  bufferTiers   BufferTier[]
+}
+
+// Staffelung: Zuschlag in km auf den Gesamtumlauf, gestaffelt nach dessen
+// Höhe. customerId = null bedeutet die allgemeine (globale) Staffel, die für
+// alle Anfragen ohne Kunden-spezifische Staffel gilt (siehe
+// Customer.bufferMode). maxKm = null bedeutet "nach oben offen".
+model BufferTier {
+  id         String    @id @default(cuid())
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  minKm      Float
+  maxKm      Float?
+  bufferKm   Float
+  createdAt  DateTime  @default(now())
+
+  @@index([customerId])
 }
 
 model OrganizationCustomer {
@@ -167,6 +191,7 @@ model RouteRequestCandidate {
   toStartDistanceM    Float
   fromDestDistanceM   Float
   totalRoundTripM     Float
+  totalRoundTripWithBufferM Float
 
   @@index([routeRequestId])
 }

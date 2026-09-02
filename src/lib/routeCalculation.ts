@@ -2,6 +2,7 @@ import "server-only";
 import { Prisma, VehicleType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getRoute, getDistanceMatrix, type LngLat } from "@/lib/ors";
+import { getApplicableBufferTiers, findBufferKm } from "@/lib/buffer";
 
 export type RoutePoint = {
   address: string;
@@ -40,7 +41,15 @@ const VEHICLE_COLUMN: Record<VehicleType, string> = {
 // deutlich darunter.
 const MATRIX_BATCH_SIZE = 1000;
 
-type CandidateOrg = { id: string; name: string; lat: number; lng: number };
+type CandidateOrg = {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  street: string | null;
+  postalCode: string | null;
+  city: string | null;
+};
 
 // Bewusst KEIN geografischer Vorfilter: Ein Transporteur, der weiter von der
 // Routenlinie entfernt liegt, kann trotzdem einen kürzeren echten
@@ -53,7 +62,7 @@ async function findCandidateOrganizations(
   const vehicleColumn = VEHICLE_COLUMN[input.vehicleType];
 
   return prisma.$queryRaw<CandidateOrg[]>(Prisma.sql`
-    SELECT o.id, o.name, o.lat, o.lng
+    SELECT o.id, o.name, o.lat, o.lng, o.street, o."postalCode", o.city
     FROM "Organization" o
     WHERE o.active = true
       AND o.${Prisma.raw(`"${vehicleColumn}"`)} = true
@@ -72,11 +81,15 @@ async function findCandidateOrganizations(
 export type RankedCandidate = {
   organizationId: string;
   organizationName: string;
+  street: string | null;
+  postalCode: string | null;
+  city: string | null;
   lat: number;
   lng: number;
   toStartDistanceM: number;
   fromDestDistanceM: number;
   totalRoundTripM: number;
+  totalRoundTripWithBufferM: number;
 };
 
 async function rankCandidates(
@@ -84,6 +97,7 @@ async function rankCandidates(
   snappedStart: LngLat,
   snappedDestination: LngLat,
   patientRouteDistanceM: number,
+  bufferTiers: Awaited<ReturnType<typeof getApplicableBufferTiers>>,
 ): Promise<RankedCandidate[]> {
   const destinations: LngLat[] = [snappedStart, snappedDestination];
 
@@ -103,19 +117,28 @@ async function rankCandidates(
     batch.forEach((c, j) => {
       const toStartDistanceM = matrix[j][0];
       const fromDestDistanceM = matrix[j][1];
+      const totalRoundTripM =
+        toStartDistanceM + patientRouteDistanceM + fromDestDistanceM;
+      const bufferKm = findBufferKm(bufferTiers, totalRoundTripM / 1000);
       ranked.push({
         organizationId: c.id,
         organizationName: c.name,
+        street: c.street,
+        postalCode: c.postalCode,
+        city: c.city,
         lat: c.lat,
         lng: c.lng,
         toStartDistanceM,
         fromDestDistanceM,
-        totalRoundTripM:
-          toStartDistanceM + patientRouteDistanceM + fromDestDistanceM,
+        totalRoundTripM,
+        totalRoundTripWithBufferM: totalRoundTripM + bufferKm * 1000,
       });
     });
   }
 
+  // Rangfolge basiert bewusst auf dem echten (ungepufferten) Umlauf - der
+  // Puffer ist ein Aufschlag für Statistik/Abrechnung, soll aber nicht die
+  // Wirtschaftlichkeits-Reihenfolge verfälschen.
   return ranked.sort((a, b) => a.totalRoundTripM - b.totalRoundTripM);
 }
 
@@ -147,7 +170,11 @@ export async function calculateRoute(input: RouteCalculationInput) {
     0,
   );
 
-  const candidates = await findCandidateOrganizations(input);
+  const [candidates, bufferTiers] = await Promise.all([
+    findCandidateOrganizations(input),
+    getApplicableBufferTiers(input.customerId ?? null),
+  ]);
+
   const ranked =
     candidates.length > 0
       ? await rankCandidates(
@@ -155,6 +182,7 @@ export async function calculateRoute(input: RouteCalculationInput) {
           snappedStart,
           snappedDestination,
           patientRoute.distanceM,
+          bufferTiers,
         )
       : [];
 
@@ -190,6 +218,7 @@ export async function calculateRoute(input: RouteCalculationInput) {
           toStartDistanceM: r.toStartDistanceM,
           fromDestDistanceM: r.fromDestDistanceM,
           totalRoundTripM: r.totalRoundTripM,
+          totalRoundTripWithBufferM: r.totalRoundTripWithBufferM,
         })),
       },
     },

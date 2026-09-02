@@ -14,6 +14,7 @@ const links = [
   { href: "/admin/customers", label: "Kunden", adminOnly: true },
   { href: "/admin/users", label: "Benutzer", adminOnly: true },
   { href: "/admin/statistics", label: "Statistik", adminOnly: true },
+  { href: "/admin/settings", label: "Einstellungen", adminOnly: true },
 ];
 
 export function AppNav({ name, role }: Props) {
