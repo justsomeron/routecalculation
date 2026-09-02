@@ -18,6 +18,12 @@ export type RouteCalculationInput = {
   needsDoctor: boolean;
   needsTemperingMattress: boolean;
   customerId?: string | null;
+  // Ein Eintrag pro Teilstrecke (Start->Stopp1, ..., ->Ziel), markiert ob
+  // der Patient auf dieser Teilstrecke tatsächlich transportiert wird (z.B.
+  // nicht die Leerfahrt zum Abholen einer Medical Crew). Länge muss
+  // stops.length + 1 entsprechen. Wird das Feld weggelassen, gilt die
+  // gesamte Fahrt als Patiententransport (bisheriges Verhalten).
+  patientLegs?: boolean[];
 };
 
 const VEHICLE_COLUMN: Record<VehicleType, string> = {
@@ -132,6 +138,15 @@ export async function calculateRoute(input: RouteCalculationInput) {
   const snappedStart = routeCoords[0];
   const snappedDestination = routeCoords[routeCoords.length - 1];
 
+  const patientLegs =
+    input.patientLegs?.length === patientRoute.legDistancesM.length
+      ? input.patientLegs
+      : patientRoute.legDistancesM.map(() => true);
+  const patientDistanceM = patientRoute.legDistancesM.reduce(
+    (sum, legM, i) => sum + (patientLegs[i] ? legM : 0),
+    0,
+  );
+
   const candidates = await findCandidateOrganizations(input);
   const ranked =
     candidates.length > 0
@@ -157,6 +172,7 @@ export async function calculateRoute(input: RouteCalculationInput) {
       destLat: input.destination.lat,
       destLng: input.destination.lng,
       totalPatientRouteDistanceM: patientRoute.distanceM,
+      patientDistanceM,
       routeGeoJson: patientRoute.geometry as unknown as Prisma.InputJsonValue,
       stops: {
         create: input.stops.map((s, i) => ({
@@ -182,6 +198,7 @@ export async function calculateRoute(input: RouteCalculationInput) {
   return {
     routeRequestId: routeRequest.id,
     patientRouteDistanceM: patientRoute.distanceM,
+    patientDistanceM,
     patientRouteGeometry: patientRoute.geometry,
     totalCandidates: ranked.length,
     candidates: ranked.slice(0, 5),

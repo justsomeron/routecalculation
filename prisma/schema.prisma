@@ -136,6 +136,7 @@ model RouteRequest {
   destLat                     Float
   destLng                     Float
   totalPatientRouteDistanceM  Float
+  patientDistanceM            Float
   routeGeoJson                Json?
   createdAt                   DateTime                 @default(now())
   stops                       RouteRequestStop[]

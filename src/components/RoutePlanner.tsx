@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { AddressAutocomplete, AddressValue } from "@/components/AddressAutocomplete";
 import type { MapCandidate, MapPoint } from "@/components/RouteMap";
@@ -57,8 +57,37 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
   const [routeRequestId, setRouteRequestId] = useState<string | null>(null);
   const [routeGeometry, setRouteGeometry] = useState<GeoJSON.LineString | null>(null);
   const [patientRouteDistanceM, setPatientRouteDistanceM] = useState<number | null>(null);
+  const [patientDistanceM, setPatientDistanceM] = useState<number | null>(null);
   const [totalCandidates, setTotalCandidates] = useState(0);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+
+  // Ein Eintrag pro Teilstrecke (Start->Stopp1, ..., ->Ziel). Markiert, ob
+  // der Patient auf dieser Teilstrecke tatsächlich mitfährt (z.B. nicht bei
+  // einer Leerfahrt zum Abholen einer Medical Crew). Standard: alles ist
+  // Patiententransport.
+  const [patientLegs, setPatientLegs] = useState<boolean[]>([true]);
+
+  const filledStops = stops.filter((s): s is AddressValue => !!s);
+  const legLabels = [
+    "Start",
+    ...filledStops.map((_, i) => `Zwischenstopp ${i + 1}`),
+    "Ziel",
+  ];
+  const legsCount = legLabels.length - 1;
+
+  useEffect(() => {
+    setPatientLegs((prev) =>
+      prev.length === legsCount
+        ? prev
+        : Array.from({ length: legsCount }, (_, i) => prev[i] ?? true),
+    );
+  }, [legsCount]);
+
+  function toggleLeg(index: number) {
+    setPatientLegs((legs) =>
+      legs.map((v, i) => (i === index ? !v : v)),
+    );
+  }
 
   function addStop() {
     if (stops.length >= 3) return;
@@ -97,6 +126,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
           needsDoctor,
           needsTemperingMattress,
           customerId: customerId || null,
+          patientLegs,
         }),
       });
       const data = await res.json();
@@ -107,6 +137,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
       setRouteRequestId(data.routeRequestId);
       setRouteGeometry(data.patientRouteGeometry);
       setPatientRouteDistanceM(data.patientRouteDistanceM);
+      setPatientDistanceM(data.patientDistanceM);
       setTotalCandidates(data.totalCandidates);
       setCandidates(data.candidates);
     } finally {
@@ -215,6 +246,28 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
             placeholder="Zieladresse"
           />
 
+          {legsCount > 1 && (
+            <div>
+              <p className="mb-2 text-xs font-medium text-slate-600">
+                Auf welchen Teilstrecken ist der Patient tatsächlich an
+                Bord? (für die Statistik/Abrechnung – die Wirtschaftlichkeits-
+                Berechnung berücksichtigt weiterhin die gesamte Fahrt)
+              </p>
+              <div className="space-y-1.5">
+                {patientLegs.map((checked, i) => (
+                  <label key={i} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleLeg(i)}
+                    />
+                    {legLabels[i]} → {legLabels[i + 1]}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-600">
               Fahrzeugtyp
@@ -280,12 +333,18 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
           </button>
         </form>
 
-        {patientRouteDistanceM !== null && (
+        {patientRouteDistanceM !== null && patientDistanceM !== null && (
           <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4 text-sm">
-            <p className="text-slate-500">Patientenstrecke (Start → Ziel)</p>
+            <p className="text-slate-500">Patientenstrecke</p>
             <p className="text-lg font-semibold text-slate-900">
-              {km(patientRouteDistanceM)} km
+              {km(patientDistanceM)} km
             </p>
+            {Math.abs(patientDistanceM - patientRouteDistanceM) > 1 && (
+              <p className="mt-1 text-xs text-slate-400">
+                Gesamte Fahrtstrecke (inkl. Teilstrecken ohne Patient):{" "}
+                {km(patientRouteDistanceM)} km
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -295,11 +354,15 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
           <RouteMap waypoints={waypoints} routeLine={routeLine} candidates={mapCandidates} />
         </div>
 
-        {candidates.length > 0 && candidates[0].totalRoundTripM > FAR_RESULT_THRESHOLD_M && (
+        {candidates.length > 0 &&
+          candidates[0].toStartDistanceM + candidates[0].fromDestDistanceM >
+            FAR_RESULT_THRESHOLD_M && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-            Hinweis: Der nächstgelegene passende Transporteur ist mit{" "}
-            {km(candidates[0].totalRoundTripM)} km Gesamtumlauf ungewöhnlich
-            weit entfernt. Prüfe ggf. Fahrzeugtyp-, Arzt-/Tempurmatratzen- oder
+            Hinweis: Der nächstgelegene passende Transporteur hat mit{" "}
+            {km(candidates[0].toStartDistanceM + candidates[0].fromDestDistanceM)}{" "}
+            km An-/Abfahrt (ohne die eigentliche Fahrtstrecke) einen
+            ungewöhnlich weiten Weg zu Start bzw. von Ziel zurück zur Basis.
+            Prüfe ggf. Fahrzeugtyp-, Arzt-/Tempurmatratzen- oder
             Kunden-Anforderung.
           </div>
         )}

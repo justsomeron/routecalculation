@@ -7,6 +7,9 @@ export type ORSRoute = {
   distanceM: number;
   durationS: number;
   geometry: GeoJSON.LineString;
+  // Distanz je Teilstrecke zwischen zwei aufeinanderfolgenden Wegpunkten
+  // (Start->Stopp1, Stopp1->Stopp2, ..., ->Ziel), in derselben Reihenfolge.
+  legDistancesM: number[];
 };
 
 function apiKey() {
@@ -92,10 +95,15 @@ export async function getRoute(waypoints: LngLat[]): Promise<ORSRoute> {
     throw new UserFacingError(GENERIC_ERROR_MESSAGE);
   }
 
+  const segments = feature.properties.segments as Array<{
+    distance: number;
+  }>;
+
   return {
     distanceM: feature.properties.summary.distance,
     durationS: feature.properties.summary.duration,
     geometry: feature.geometry,
+    legDistancesM: segments.map((s) => s.distance),
   };
 }
 
