@@ -27,7 +27,14 @@ export async function getRoute(waypoints: LngLat[]): Promise<ORSRoute> {
         Authorization: apiKey(),
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ coordinates: waypoints }),
+      body: JSON.stringify({
+        coordinates: waypoints,
+        // -1 = unbegrenzte Suche nach der nächsten befahrbaren Straße.
+        // Ohne das schlägt ORS bei Punkten wie Flughafen-Terminals fehl
+        // ("Could not find routable point within a radius of 350.0 meters"),
+        // weil der exakte Adresspunkt selbst nicht mit dem Auto erreichbar ist.
+        radiuses: waypoints.map(() => -1),
+      }),
     },
   );
 
@@ -71,6 +78,9 @@ export async function getDistanceMatrix(
       destinations: destinationIndices,
       metrics: ["distance"],
       units: "m",
+      // -1 = unbegrenzte Suche nach der nächsten befahrbaren Straße, siehe
+      // getRoute() weiter oben.
+      radiuses: locations.map(() => -1),
     }),
   });
 
