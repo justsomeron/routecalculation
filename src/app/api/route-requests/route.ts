@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { calculateRoute } from "@/lib/routeCalculation";
+import { UserFacingError } from "@/lib/errors";
+
+const FALLBACK_ERROR_MESSAGE =
+  "Die Route konnte gerade nicht berechnet werden. Bitte versuche es in Kürze erneut. Falls das Problem bestehen bleibt, wende dich an einen Administrator.";
 
 const pointSchema = z.object({
   address: z.string().min(1),
@@ -41,15 +45,13 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(result);
   } catch (err) {
+    // Nur explizit als "für Disponenten verständlich" markierte Fehler
+    // dürfen in der Oberfläche angezeigt werden. Alles andere (Bugs,
+    // Datenbankfehler etc.) zeigt eine generische Meldung - Details landen
+    // ausschließlich im Server-Log.
     console.error("Fehler bei der Routenberechnung", err);
-    return NextResponse.json(
-      {
-        error:
-          err instanceof Error
-            ? err.message
-            : "Fehler bei der Routenberechnung.",
-      },
-      { status: 500 },
-    );
+    const message =
+      err instanceof UserFacingError ? err.message : FALLBACK_ERROR_MESSAGE;
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
