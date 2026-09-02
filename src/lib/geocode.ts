@@ -82,6 +82,24 @@ function typeLabel(p: PhotonProperties): string | undefined {
   return TYPE_LABELS[`${p.osm_key}:${p.osm_value}`];
 }
 
+// OSM-Namen sind nicht einheitlich benannt (z.B. "Düsseldorf Airport" auf
+// Englisch vs. "Flughafen Innsbruck" auf Deutsch) - hier je Label die
+// Begriffe, bei denen die Klammer redundant wäre.
+const LABEL_ALIASES: Record<string, string[]> = {
+  Flughafen: ["flughafen", "airport"],
+  "Flughafen-Terminal": ["flughafen", "airport", "terminal"],
+  Bahnhof: ["bahnhof", "station"],
+  Haltepunkt: ["haltepunkt", "station"],
+  Krankenhaus: ["krankenhaus", "hospital", "klinikum"],
+  Klinik: ["klinik", "clinic"],
+};
+
+function isLabelRedundant(poiName: string, label: string): boolean {
+  const lowerName = poiName.toLowerCase();
+  const aliases = LABEL_ALIASES[label] ?? [label.toLowerCase()];
+  return aliases.some((a) => lowerName.includes(a));
+}
+
 // Baut aus den strukturierten Photon-Feldern eine kompakte, Google-Maps-
 // artige Bezeichnung. Bei reinen Straßenadressen liefert Photon "name" oft
 // identisch zum Straßennamen - dann wird "name" nicht doppelt angezeigt.
@@ -94,10 +112,11 @@ function formatFeature(p: PhotonProperties): string {
   const poiName =
     p.name && p.name !== p.street && p.name !== city ? p.name : undefined;
   const rawLabel = typeLabel(p);
-  // Label weglassen, wenn der Name das Wort schon enthält (z.B. "Flughafen
-  // Innsbruck" braucht kein zusätzliches "(Flughafen)").
+  // Label weglassen, wenn der Name das schon erkennbar macht (z.B.
+  // "Flughafen Innsbruck" oder "Düsseldorf Airport" brauchen kein
+  // zusätzliches "(Flughafen)").
   const label =
-    rawLabel && !poiName?.toLowerCase().includes(rawLabel.toLowerCase())
+    rawLabel && poiName && !isLabelRedundant(poiName, rawLabel)
       ? rawLabel
       : undefined;
   const poi = poiName && label ? `${poiName} (${label})` : poiName;
