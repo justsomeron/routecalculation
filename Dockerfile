@@ -14,6 +14,11 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# "prisma generate" liest prisma.config.ts, die zwingend eine DATABASE_URL
+# erwartet - auch wenn dabei noch gar keine echte Verbindung aufgebaut wird.
+# Platzhalter-Wert reicht hier, die echte URL kommt erst zur Laufzeit über
+# docker-compose (environment/.env).
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder?schema=public"
 RUN npx prisma generate
 RUN npm run build
 
