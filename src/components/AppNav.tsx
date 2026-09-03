@@ -58,7 +58,7 @@ export function AppNav({ name, role }: Props) {
     }`;
 
   return (
-    <header className="border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+    <header className="relative z-[2000] border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
         <div className="flex items-center gap-8">
           <Link
@@ -97,7 +97,7 @@ export function AppNav({ name, role }: Props) {
                   </span>
                 </button>
                 {adminOpen && (
-                  <div className="absolute left-0 z-30 mt-1 w-56 rounded-md border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                  <div className="absolute left-0 z-[2000] mt-1 w-56 rounded-md border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
                     {adminLinks.map((l) => (
                       <Link
                         key={l.href}

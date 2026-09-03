@@ -71,6 +71,10 @@ export function AddressAutocomplete({
   }
 
   function select(s: Suggestion) {
+    // Verhindert, dass ein noch laufender Debounce-Timer von der letzten
+    // Tastatureingabe kurz nach der Auswahl doch noch feuert und die
+    // (veraltete) Vorschlagsliste erneut öffnet.
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     setQuery(s.displayName);
     onChange({ address: s.displayName, lat: s.lat, lng: s.lng });
     setSuggestions([]);
