@@ -54,8 +54,8 @@ export function CustomerBufferSettings({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-slate-200 bg-white p-4">
-        <p className="mb-2 text-xs font-medium text-slate-600">
+      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
+        <p className="mb-2 text-xs font-medium text-slate-600 dark:text-slate-300">
           Puffer-Modus
         </p>
         <div className="space-y-1.5">
@@ -73,13 +73,13 @@ export function CustomerBufferSettings({
           ))}
         </div>
         {saved && (
-          <p className="mt-2 text-sm text-green-700">Gespeichert.</p>
+          <p className="mt-2 text-sm text-green-700 dark:text-green-400">Gespeichert.</p>
         )}
       </div>
 
       {bufferMode === "CUSTOM" && (
         <div>
-          <p className="mb-2 text-xs font-medium text-slate-600">
+          <p className="mb-2 text-xs font-medium text-slate-600 dark:text-slate-300">
             Eigene Staffel für diesen Kunden
           </p>
           <BufferTierEditor initialTiers={initialTiers} onSave={saveTiers} />

@@ -20,14 +20,14 @@ export default async function CustomerDetailPage({
     <div>
       <Link
         href="/admin/customers"
-        className="text-sm text-blue-600 hover:underline"
+        className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
       >
         ← Zurück zur Kundenverwaltung
       </Link>
-      <h1 className="mt-2 text-2xl font-semibold text-slate-900">
+      <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">
         {customer.name}
       </h1>
-      <p className="text-slate-500">Puffer-Einstellungen für diesen Kunden</p>
+      <p className="text-slate-500 dark:text-slate-400">Puffer-Einstellungen für diesen Kunden</p>
 
       <div className="mt-6 max-w-2xl">
         <CustomerBufferSettings

@@ -10,8 +10,8 @@ export default async function ReportsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-900">Reports</h1>
-      <p className="mt-1 text-slate-500">
+      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Reports</h1>
+      <p className="mt-1 text-slate-500 dark:text-slate-400">
         Monats-, Jahres- oder freier Zeitraum-Report als PDF – aufbereitet
         für Präsentationen (Kennzahlen, Diagramme, Top-Listen).
       </p>

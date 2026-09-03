@@ -10,14 +10,9 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-900">
+      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
         Routenkalkulation
       </h1>
-      <p className="mt-1 text-slate-500">
-        Start, Ziel und bis zu fünf Zwischenstopps eingeben. Die
-        wirtschaftlichsten Transporteure entlang der gesamten Route werden
-        aufsteigend nach Gesamtumlauf angezeigt.
-      </p>
       <div className="mt-6">
         <RoutePlanner customers={customers} />
       </div>

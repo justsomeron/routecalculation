@@ -1,7 +1,26 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
 body {
-  background: #f8fafc;
-  color: #0f172a;
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Sicherheitsnetz für native Formularelemente ohne eigene Dark-Mode-Klassen
+   (z.B. innerhalb von React-Leaflet-Popups oder Drittkomponenten), damit nie
+   dunkler Text auf dunklem Grund entsteht. */
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
+

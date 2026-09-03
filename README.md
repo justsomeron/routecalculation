@@ -8,7 +8,15 @@ und Ziel.
 
 ## Funktionen
 
-- **Login, Benutzerverwaltung, Einladungen, Passwort-Reset** (Administrator)
+- **Login, Benutzerverwaltung, Einladungen, Passwort-Reset** (Administrator);
+  jeder Benutzer kann zusätzlich unter „Einstellungen“ selbst sein eigenes
+  Passwort ändern
+- **Übersichtliches Menü**: Disponenten sehen nur die Routenkalkulation,
+  Verwaltungsfunktionen (Transporteure, Kunden, Benutzer, Statistik,
+  Puffer-Einstellungen) sind für Administratoren in einem eigenen
+  „Administration“-Menü gebündelt
+- **Dunkelmodus**: umschaltbar über das Hell-/Dunkel-Symbol im Menü,
+  Einstellung wird pro Gerät gespeichert
 - **Transporteur-Verwaltung**: Typ (Kreisverband/Ortsverein/Extern),
   Fahrzeugtypen (PKW/VAN/KTW/N-KTW/RTW/ITW), Ärzte ja/nein, Tempurmatratze
   ja/nein, Kunden-Zuordnung, Standort per Adresssuche

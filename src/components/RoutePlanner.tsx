@@ -7,7 +7,7 @@ import type { MapCandidate, MapPoint, MapPreviewOrg } from "@/components/RouteMa
 
 const RouteMap = dynamic(
   () => import("@/components/RouteMap").then((m) => m.RouteMap),
-  { ssr: false, loading: () => <div className="flex h-full items-center justify-center text-slate-400">Karte wird geladen…</div> },
+  { ssr: false, loading: () => <div className="flex h-full items-center justify-center text-slate-400 dark:text-slate-500">Karte wird geladen…</div> },
 );
 
 type VehicleType = "PKW" | "VAN" | "KTW" | "N_KTW" | "RTW" | "ITW";
@@ -330,16 +330,8 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
           onSubmit={onSubmit}
           autoComplete="off"
           data-1p-ignore
-          className="space-y-4 rounded-lg border border-slate-200 bg-white p-4"
+          className="space-y-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4"
         >
-          <p className="text-xs text-slate-400">
-            Reihenfolge per Ziehen am Griff <span aria-hidden>⠿</span> anpassen
-            – der jeweils erste Punkt ist Start, der letzte Ziel. Mit
-            „Patientenstrecke“ markierst du, auf welchen Teilstrecken der
-            Patient tatsächlich mitfährt (z. B. abwählen bei einer Leerfahrt
-            zum Abholen einer Medical Crew).
-          </p>
-
           {points.map((p, i) => (
             <div
               key={i}
@@ -354,7 +346,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
             >
               <div className="flex items-end gap-2">
                 <span
-                  className="mb-2.5 cursor-move select-none px-1 text-slate-400 hover:text-slate-600"
+                  className="mb-2.5 cursor-move select-none px-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
                   title="Ziehen zum Umsortieren"
                   aria-hidden
                 >
@@ -378,14 +370,14 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
                   <button
                     type="button"
                     onClick={() => removeStop(i - 1)}
-                    className="mb-0.5 rounded-md border border-slate-300 px-2 py-2 text-xs text-slate-600 hover:bg-slate-50"
+                    className="mb-0.5 rounded-md border border-slate-300 dark:border-slate-600 px-2 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     Entfernen
                   </button>
                 )}
               </div>
               {legsCount > 1 && i < points.length - 1 && (
-                <label className="mt-1 ml-7 flex items-center gap-2 text-sm text-slate-600">
+                <label className="mt-1 ml-7 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                   <input
                     type="checkbox"
                     checked={patientLegs[i] ?? true}
@@ -400,20 +392,20 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
             <button
               type="button"
               onClick={addStop}
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
             >
               + Zwischenstopp hinzufügen
             </button>
           )}
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">
+            <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
               Fahrzeugtyp
             </label>
             <select
               value={vehicleType}
               onChange={(e) => setVehicleType(e.target.value as VehicleType)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm"
             >
               {Object.entries(vehicleLabels).map(([k, v]) => (
                 <option key={k} value={k}>
@@ -442,36 +434,36 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
             </label>
           </div>
 
-          <div className="rounded-md border border-slate-200">
+          <div className="rounded-md border border-slate-200 dark:border-slate-700">
             <button
               type="button"
               onClick={() => setShowAdvanced((v) => !v)}
-              className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+              className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
             >
               <span>
                 Erweiterte Optionen
                 {(isEmergency || showPreview) && (
-                  <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-normal text-blue-700">
+                  <span className="ml-2 rounded-full bg-blue-100 dark:bg-blue-900 px-2 py-0.5 text-xs font-normal text-blue-700 dark:text-blue-300">
                     aktiv
                   </span>
                 )}
               </span>
               <span
-                className={`text-slate-400 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
+                className={`text-slate-400 dark:text-slate-500 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
                 aria-hidden
               >
                 ▾
               </span>
             </button>
             {showAdvanced && (
-              <div className="space-y-3 border-t border-slate-200 p-3">
+              <div className="space-y-3 border-t border-slate-200 dark:border-slate-700 p-3">
                 <button
                   type="button"
                   onClick={() => setShowPreview((v) => !v)}
                   className={`w-full rounded-md border px-3 py-1.5 text-xs font-medium ${
                     showPreview
-                      ? "border-blue-300 bg-blue-50 text-blue-700"
-                      : "border-slate-300 text-slate-600 hover:bg-slate-50"
+                      ? "border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300"
+                      : "border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                   }`}
                 >
                   {showPreview
@@ -479,7 +471,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
                     : `Alle ${vehicleLabels[vehicleType]}-Standorte auf Karte anzeigen`}
                 </button>
 
-                <label className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                <label className="flex items-center gap-2 rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-3 py-2 text-sm text-red-800 dark:text-red-300">
                   <input
                     type="checkbox"
                     checked={isEmergency}
@@ -492,13 +484,13 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">
+            <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
               Kunde
             </label>
             <select
               value={customerId}
               onChange={(e) => setCustomerId(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm"
             >
               <option value="">Kein bestimmter Kunde</option>
               {customers.map((c) => (
@@ -509,10 +501,10 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
             </select>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
           {stale && routeRequestId && (
-            <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            <p className="rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-3 py-2 text-xs text-amber-800 dark:text-amber-300">
               Die Route wurde geändert – bitte neu berechnen, damit die
               Ergebnisse aktuell sind.
             </p>
@@ -532,13 +524,13 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
         </form>
 
         {patientRouteDistanceM !== null && patientDistanceM !== null && (
-          <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4 text-sm">
-            <p className="text-slate-500">Patientenstrecke</p>
-            <p className="text-lg font-semibold text-slate-900">
+          <div className="mt-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 text-sm">
+            <p className="text-slate-500 dark:text-slate-400">Patientenstrecke</p>
+            <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               {km(patientDistanceM)} km
             </p>
             {Math.abs(patientDistanceM - patientRouteDistanceM) > 1 && (
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                 Gesamte Fahrtstrecke (inkl. Teilstrecken ohne Patient):{" "}
                 {km(patientRouteDistanceM)} km
               </p>
@@ -548,7 +540,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
       </div>
 
       <div className="space-y-4">
-        <div className="h-[420px] overflow-hidden rounded-lg border border-slate-200">
+        <div className="h-[420px] overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
           <RouteMap
             waypoints={waypoints}
             routeLine={routeLine}
@@ -560,7 +552,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
         {candidates.length > 0 &&
           candidates[0].toStartDistanceM + candidates[0].fromDestDistanceM >
             FAR_RESULT_THRESHOLD_M && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 p-3 text-sm text-amber-800 dark:text-amber-300">
             Hinweis: Der nächstgelegene passende Transporteur hat mit{" "}
             {km(candidates[0].toStartDistanceM + candidates[0].fromDestDistanceM)}{" "}
             km An-/Abfahrt (ohne die eigentliche Fahrtstrecke) einen
@@ -571,9 +563,9 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
         )}
 
         {candidates.length > 0 && (
-          <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500">
+              <thead className="bg-slate-50 dark:bg-slate-900 text-left text-xs uppercase text-slate-500 dark:text-slate-400">
                 <tr>
                   <th className="px-4 py-3">#</th>
                   <th className="px-4 py-3">Transporteur</th>
@@ -582,33 +574,33 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
                   <th className="px-4 py-3">Gesamtumlauf</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                 {candidates.map((c, i) => (
                   <tr key={`${c.organizationId}-${i}`}>
-                    <td className="px-4 py-3 text-slate-500">{i + 1}</td>
-                    <td className="px-4 py-3 font-medium text-slate-900">
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{i + 1}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
                       {c.organizationName}
                       {candidateAddress(c) && (
                         <>
                           <br />
-                          <span className="text-xs font-normal text-slate-400">
+                          <span className="text-xs font-normal text-slate-400 dark:text-slate-500">
                             {candidateAddress(c)}
                           </span>
                         </>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                       {km(c.toStartDistanceM)} km
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                       {km(c.fromDestDistanceM)} km
                     </td>
-                    <td className="px-4 py-3 font-semibold text-slate-900">
+                    <td className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">
                       {km(c.totalRoundTripWithBufferM)} km
                       {c.totalRoundTripWithBufferM > c.totalRoundTripM && (
                         <>
                           <br />
-                          <span className="text-xs font-normal text-slate-400">
+                          <span className="text-xs font-normal text-slate-400 dark:text-slate-500">
                             inkl. {km(
                               c.totalRoundTripWithBufferM - c.totalRoundTripM,
                             )}{" "}
@@ -622,11 +614,11 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
               </tbody>
             </table>
             {candidates.length < totalCandidates && (
-              <div className="border-t border-slate-100 p-3 text-center">
+              <div className="border-t border-slate-100 dark:border-slate-700 p-3 text-center">
                 <button
                   onClick={loadMore}
                   disabled={loadingMore}
-                  className="rounded-md border border-slate-300 px-4 py-1.5 text-sm hover:bg-slate-50 disabled:opacity-60"
+                  className="rounded-md border border-slate-300 dark:border-slate-600 px-4 py-1.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60"
                 >
                   {loadingMore ? "Lädt…" : "Mehr laden"}
                 </button>
@@ -636,7 +628,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
         )}
 
         {routeRequestId && candidates.length === 0 && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 p-4 text-sm text-amber-800 dark:text-amber-300">
             Keine passenden Transporteure entlang der Route gefunden. Prüfe
             Fahrzeugtyp, Arzt-/Tempurmatratzen-Anforderung, Kunden-Zuordnung
             oder den Korridor-Radius.

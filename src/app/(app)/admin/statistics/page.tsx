@@ -45,27 +45,27 @@ export default async function StatisticsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-900">
+      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
         Statistik &amp; Anfrageverlauf
       </h1>
-      <p className="mt-1 text-slate-500">
+      <p className="mt-1 text-slate-500 dark:text-slate-400">
         Auswertung aller Routenanfragen für statistische Erhebungen.
       </p>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-4">
-        <div className="rounded-lg border border-slate-200 bg-white p-4">
-          <p className="text-xs uppercase text-slate-500">Anfragen gesamt</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-900">{total}</p>
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
+          <p className="text-xs uppercase text-slate-500 dark:text-slate-400">Anfragen gesamt</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{total}</p>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-white p-4">
-          <p className="text-xs uppercase text-slate-500">Letzte 30 Tage</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-900">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
+          <p className="text-xs uppercase text-slate-500 dark:text-slate-400">Letzte 30 Tage</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
             {last30Days}
           </p>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-white p-4 sm:col-span-2">
-          <p className="text-xs uppercase text-slate-500">Nach Fahrzeugtyp</p>
-          <p className="mt-1 text-sm text-slate-700">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 sm:col-span-2">
+          <p className="text-xs uppercase text-slate-500 dark:text-slate-400">Nach Fahrzeugtyp</p>
+          <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
             {byVehicle
               .map(
                 (v) =>
@@ -76,31 +76,31 @@ export default async function StatisticsPage() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-lg border border-slate-200 bg-white p-4">
-        <p className="mb-2 text-xs uppercase text-slate-500">
+      <div className="mt-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
+        <p className="mb-2 text-xs uppercase text-slate-500 dark:text-slate-400">
           Am häufigsten wirtschaftlichster Transporteur
         </p>
         <div className="flex flex-wrap gap-2">
           {topOrganizations.map((o) => (
             <span
               key={o.organizationName}
-              className="rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-700"
+              className="rounded-full bg-blue-50 dark:bg-blue-950 px-3 py-1 text-sm text-blue-700 dark:text-blue-300"
             >
               {o.organizationName} ({o._count._all}×)
             </span>
           ))}
           {topOrganizations.length === 0 && (
-            <span className="text-sm text-slate-400">Noch keine Daten.</span>
+            <span className="text-sm text-slate-400 dark:text-slate-500">Noch keine Daten.</span>
           )}
         </div>
       </div>
 
-      <h2 className="mt-8 text-lg font-semibold text-slate-900">
+      <h2 className="mt-8 text-lg font-semibold text-slate-900 dark:text-slate-100">
         Letzte Anfragen ({recent.length})
       </h2>
-      <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500">
+          <thead className="bg-slate-50 dark:bg-slate-900 text-left text-xs uppercase text-slate-500 dark:text-slate-400">
             <tr>
               <th className="px-4 py-3">Datum</th>
               <th className="px-4 py-3">Disponent</th>
@@ -111,10 +111,10 @@ export default async function StatisticsPage() {
               <th className="px-4 py-3">Top 3 Transporteure</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
             {recent.map((r) => (
               <tr key={r.id}>
-                <td className="px-4 py-3 text-slate-600">
+                <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                   {new Intl.DateTimeFormat("de-DE", {
                     dateStyle: "short",
                     timeStyle: "short",
@@ -123,7 +123,7 @@ export default async function StatisticsPage() {
                 <td className="px-4 py-3">
                   <Link
                     href={`/admin/users/${r.requestedBy.id}`}
-                    className="text-blue-600 hover:underline"
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
                   >
                     {r.requestedBy.name}
                   </Link>
@@ -135,13 +135,13 @@ export default async function StatisticsPage() {
                   {r.needsDoctor ? " · Arzt" : ""}
                   {r.needsTemperingMattress ? " · Tempurmatratze" : ""}
                   {r.isEmergency && (
-                    <span className="ml-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                    <span className="ml-1 rounded-full bg-red-100 dark:bg-red-900 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
                       Notfall
                     </span>
                   )}
                 </td>
                 <td className="px-4 py-3">{r.customer?.name ?? "—"}</td>
-                <td className="px-4 py-3 text-slate-600">
+                <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                   {r.candidates.length > 0
                     ? r.candidates
                         .map(
@@ -157,7 +157,7 @@ export default async function StatisticsPage() {
             ))}
             {recent.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={7} className="px-4 py-6 text-center text-slate-400 dark:text-slate-500">
                   Noch keine Anfragen erfasst.
                 </td>
               </tr>

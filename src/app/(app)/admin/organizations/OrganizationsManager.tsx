@@ -264,7 +264,7 @@ export function OrganizationsManager({
     <div className="mt-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <label className="cursor-pointer rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+          <label className="cursor-pointer rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
             {importing ? "Importiere…" : "Excel-Import"}
             <input
               ref={fileInputRef}
@@ -285,15 +285,15 @@ export function OrganizationsManager({
       </div>
 
       {importResult && (
-        <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4">
-          <p className="text-sm font-medium text-slate-900">
+        <div className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
+          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
             Import abgeschlossen: {importResult.summary.created} neu,{" "}
             {importResult.summary.updated} aktualisiert,{" "}
             {importResult.summary.errors} Fehler (von{" "}
             {importResult.summary.total} Zeilen).
           </p>
           {importResult.summary.errors > 0 && (
-            <ul className="mt-2 max-h-40 overflow-auto text-sm text-red-700">
+            <ul className="mt-2 max-h-40 overflow-auto text-sm text-red-700 dark:text-red-400">
               {importResult.results
                 .filter((r) => r.status === "error")
                 .map((r, i) => (
@@ -305,7 +305,7 @@ export function OrganizationsManager({
           )}
           <button
             onClick={() => setImportResult(null)}
-            className="mt-2 text-xs text-slate-500 hover:underline"
+            className="mt-2 text-xs text-slate-500 dark:text-slate-400 hover:underline"
           >
             Schließen
           </button>
@@ -315,25 +315,25 @@ export function OrganizationsManager({
       {editing && (
         <form
           onSubmit={save}
-          className="mb-6 space-y-4 rounded-lg border border-slate-200 bg-white p-5"
+          className="mb-6 space-y-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5"
         >
-          <h2 className="font-semibold text-slate-900">
+          <h2 className="font-semibold text-slate-900 dark:text-slate-100">
             {editing === "new" ? "Neuer Transporteur" : "Transporteur bearbeiten"}
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">
+              <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
                 Name
               </label>
               <input
                 required
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">
+              <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
                 Typ
               </label>
               <select
@@ -344,7 +344,7 @@ export function OrganizationsManager({
                     type: e.target.value as Organization["type"],
                   }))
                 }
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm"
               >
                 {Object.entries(typeLabels).map(([k, v]) => (
                   <option key={k} value={k}>
@@ -363,7 +363,7 @@ export function OrganizationsManager({
           />
 
           <div>
-            <p className="mb-2 text-xs font-medium text-slate-600">
+            <p className="mb-2 text-xs font-medium text-slate-600 dark:text-slate-300">
               Fahrzeugtypen
             </p>
             <div className="flex flex-wrap gap-4">
@@ -422,7 +422,7 @@ export function OrganizationsManager({
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-medium text-slate-600">
+            <p className="mb-2 text-xs font-medium text-slate-600 dark:text-slate-300">
               Kunden (für wen wird gefahren?)
             </p>
             <div className="flex flex-wrap gap-3">
@@ -437,7 +437,7 @@ export function OrganizationsManager({
                 </label>
               ))}
               {customers.length === 0 && (
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-slate-400 dark:text-slate-500">
                   Noch keine Kunden angelegt.
                 </p>
               )}
@@ -446,7 +446,7 @@ export function OrganizationsManager({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">
+              <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
                 Kontakt Name
               </label>
               <input
@@ -454,11 +454,11 @@ export function OrganizationsManager({
                 onChange={(e) =>
                   setForm((f) => ({ ...f, contactName: e.target.value }))
                 }
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">
+              <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
                 Kontakt Telefon
               </label>
               <input
@@ -466,11 +466,11 @@ export function OrganizationsManager({
                 onChange={(e) =>
                   setForm((f) => ({ ...f, contactPhone: e.target.value }))
                 }
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">
+              <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
                 Kontakt E-Mail
               </label>
               <input
@@ -478,24 +478,24 @@ export function OrganizationsManager({
                 onChange={(e) =>
                   setForm((f) => ({ ...f, contactEmail: e.target.value }))
                 }
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm"
               />
             </div>
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">
+            <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
               Notizen
             </label>
             <textarea
               value={form.notes}
               onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm"
               rows={2}
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
           <div className="flex gap-2">
             <button
@@ -508,7 +508,7 @@ export function OrganizationsManager({
             <button
               type="button"
               onClick={() => setEditing(null)}
-              className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+              className="rounded-md border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
             >
               Abbrechen
             </button>
@@ -516,9 +516,9 @@ export function OrganizationsManager({
         </form>
       )}
 
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500">
+          <thead className="bg-slate-50 dark:bg-slate-900 text-left text-xs uppercase text-slate-500 dark:text-slate-400">
             <tr>
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Typ</th>
@@ -532,17 +532,17 @@ export function OrganizationsManager({
               <th className="px-4 py-3">Aktionen</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
             {organizations.map((org) => (
               <tr key={org.id}>
-                <td className="px-4 py-3 font-medium text-slate-900">
+                <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
                   {org.name}
                 </td>
-                <td className="px-4 py-3 text-slate-600">
+                <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                   {typeLabels[org.type]}
                 </td>
-                <td className="px-4 py-3 text-slate-600">{org.city ?? "—"}</td>
-                <td className="px-4 py-3 text-slate-600">
+                <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{org.city ?? "—"}</td>
+                <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                   {vehicleFields
                     .filter((vf) => org[vf.key])
                     .map((vf) => vf.label)
@@ -555,15 +555,15 @@ export function OrganizationsManager({
                 <td className="px-4 py-3">
                   {org.isHighPerformance ? "Ja" : "Nein"}
                 </td>
-                <td className="px-4 py-3 text-slate-600">
+                <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                   {org.customers.map((c) => c.customer.name).join(", ") || "—"}
                 </td>
                 <td className="px-4 py-3">
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                       org.active
-                        ? "bg-green-100 text-green-700"
-                        : "bg-slate-200 text-slate-600"
+                        ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400"
+                        : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
                     }`}
                   >
                     {org.active ? "Aktiv" : "Inaktiv"}
@@ -573,19 +573,19 @@ export function OrganizationsManager({
                   <div className="flex gap-2">
                     <button
                       onClick={() => startEdit(org)}
-                      className="rounded-md border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50"
+                      className="rounded-md border border-slate-300 dark:border-slate-600 px-2 py-1 text-xs hover:bg-slate-50 dark:hover:bg-slate-700"
                     >
                       Bearbeiten
                     </button>
                     <button
                       onClick={() => toggleActive(org)}
-                      className="rounded-md border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50"
+                      className="rounded-md border border-slate-300 dark:border-slate-600 px-2 py-1 text-xs hover:bg-slate-50 dark:hover:bg-slate-700"
                     >
                       {org.active ? "Deaktivieren" : "Aktivieren"}
                     </button>
                     <button
                       onClick={() => remove(org)}
-                      className="rounded-md border border-red-300 px-2 py-1 text-xs text-red-700 hover:bg-red-50"
+                      className="rounded-md border border-red-300 dark:border-red-700 px-2 py-1 text-xs text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900"
                     >
                       Löschen
                     </button>
@@ -595,7 +595,7 @@ export function OrganizationsManager({
             ))}
             {organizations.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={10} className="px-4 py-6 text-center text-slate-400 dark:text-slate-500">
                   Noch keine Transporteure angelegt.
                 </td>
               </tr>

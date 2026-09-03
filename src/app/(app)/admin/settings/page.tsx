@@ -9,8 +9,8 @@ export default async function SettingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-900">Einstellungen</h1>
-      <p className="mt-1 text-slate-500">
+      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Einstellungen</h1>
+      <p className="mt-1 text-slate-500 dark:text-slate-400">
         Allgemeine Puffer-Staffel für den Gesamtumlauf. Gilt für alle
         Anfragen, außer ein Kunde hat eine eigene Staffel oder ist auf
         &bdquo;kein Puffer&ldquo; gestellt (siehe Kundenverwaltung).

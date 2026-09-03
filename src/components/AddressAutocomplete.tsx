@@ -73,13 +73,14 @@ export function AddressAutocomplete({
   function select(s: Suggestion) {
     setQuery(s.displayName);
     onChange({ address: s.displayName, lat: s.lat, lng: s.lng });
+    setSuggestions([]);
     setOpen(false);
   }
 
   return (
     <div ref={containerRef} className="relative">
       {label && (
-        <label className="mb-1 block text-xs font-medium text-slate-600">
+        <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
           {label}
         </label>
       )}
@@ -94,19 +95,19 @@ export function AddressAutocomplete({
         data-lpignore="true"
         data-bwignore="true"
         data-form-type="other"
-        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+        className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
       />
       {loading && (
-        <span className="absolute right-2 top-8 text-xs text-slate-400">…</span>
+        <span className="absolute right-2 top-8 text-xs text-slate-400 dark:text-slate-500">…</span>
       )}
       {open && suggestions.length > 0 && (
-        <ul className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-md border border-slate-200 bg-white shadow-lg">
+        <ul className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
           {suggestions.map((s, i) => (
             <li key={i}>
               <button
                 type="button"
                 onClick={() => select(s)}
-                className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-50"
+                className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700"
               >
                 {s.displayName}
               </button>

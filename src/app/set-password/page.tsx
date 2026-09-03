@@ -40,7 +40,7 @@ function SetPasswordForm() {
 
   if (!token) {
     return (
-      <p className="text-sm text-red-600">
+      <p className="text-sm text-red-600 dark:text-red-400">
         Kein gültiger Link. Bitte fordere einen neuen Link an.
       </p>
     );
@@ -49,7 +49,7 @@ function SetPasswordForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">
+        <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
           Neues Passwort
         </label>
         <input
@@ -58,11 +58,11 @@ function SetPasswordForm() {
           minLength={8}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">
+        <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
           Passwort bestätigen
         </label>
         <input
@@ -71,10 +71,10 @@ function SetPasswordForm() {
           minLength={8}
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
         />
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       <button
         type="submit"
         disabled={loading}
@@ -88,12 +88,12 @@ function SetPasswordForm() {
 
 export default function SetPasswordPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-md">
-        <h1 className="mb-1 text-xl font-semibold text-slate-900">
+    <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-700">
+      <div className="w-full max-w-md rounded-xl bg-white dark:bg-slate-800 p-8 shadow-md">
+        <h1 className="mb-1 text-xl font-semibold text-slate-900 dark:text-slate-100">
           Passwort festlegen
         </h1>
-        <p className="mb-6 text-sm text-slate-500">
+        <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">
           Lege ein neues Passwort für dein Konto fest.
         </p>
         <Suspense>

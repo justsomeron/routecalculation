@@ -49,9 +49,9 @@ export function BufferTierEditor({
 
   return (
     <div>
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500">
+          <thead className="bg-slate-50 dark:bg-slate-900 text-left text-xs uppercase text-slate-500 dark:text-slate-400">
             <tr>
               <th className="px-4 py-2">Gesamtumlauf von (km)</th>
               <th className="px-4 py-2">bis (km, leer = offen)</th>
@@ -59,7 +59,7 @@ export function BufferTierEditor({
               <th className="px-4 py-2" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
             {tiers.map((t, i) => (
               <tr key={i}>
                 <td className="px-4 py-2">
@@ -70,7 +70,7 @@ export function BufferTierEditor({
                     onChange={(e) =>
                       updateTier(i, { minKm: Number(e.target.value) })
                     }
-                    className="w-24 rounded-md border border-slate-300 px-2 py-1"
+                    className="w-24 rounded-md border border-slate-300 dark:border-slate-600 px-2 py-1"
                   />
                 </td>
                 <td className="px-4 py-2">
@@ -85,7 +85,7 @@ export function BufferTierEditor({
                           e.target.value === "" ? null : Number(e.target.value),
                       })
                     }
-                    className="w-24 rounded-md border border-slate-300 px-2 py-1"
+                    className="w-24 rounded-md border border-slate-300 dark:border-slate-600 px-2 py-1"
                   />
                 </td>
                 <td className="px-4 py-2">
@@ -96,14 +96,14 @@ export function BufferTierEditor({
                     onChange={(e) =>
                       updateTier(i, { bufferKm: Number(e.target.value) })
                     }
-                    className="w-24 rounded-md border border-slate-300 px-2 py-1"
+                    className="w-24 rounded-md border border-slate-300 dark:border-slate-600 px-2 py-1"
                   />
                 </td>
                 <td className="px-4 py-2">
                   <button
                     type="button"
                     onClick={() => removeTier(i)}
-                    className="text-xs text-red-600 hover:underline"
+                    className="text-xs text-red-600 dark:text-red-400 hover:underline"
                   >
                     Entfernen
                   </button>
@@ -112,7 +112,7 @@ export function BufferTierEditor({
             ))}
             {tiers.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-4 text-center text-slate-400">
+                <td colSpan={4} className="px-4 py-4 text-center text-slate-400 dark:text-slate-500">
                   Keine Stufen – es wird kein Puffer angewendet.
                 </td>
               </tr>
@@ -125,7 +125,7 @@ export function BufferTierEditor({
         <button
           type="button"
           onClick={addTier}
-          className="text-sm text-blue-600 hover:underline"
+          className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
         >
           + Stufe hinzufügen
         </button>
@@ -137,7 +137,7 @@ export function BufferTierEditor({
         >
           {saving ? "Speichern…" : "Speichern"}
         </button>
-        {saved && <span className="text-sm text-green-700">Gespeichert.</span>}
+        {saved && <span className="text-sm text-green-700 dark:text-green-400">Gespeichert.</span>}
       </div>
     </div>
   );

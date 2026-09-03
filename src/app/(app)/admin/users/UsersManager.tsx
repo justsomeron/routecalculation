@@ -101,7 +101,7 @@ export function UsersManager({
   return (
     <div className="mt-6">
       {notice && (
-        <div className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-800">
+        <div className="mb-4 rounded-md bg-green-50 dark:bg-green-950 p-3 text-sm text-green-800 dark:text-green-300">
           {notice}
         </div>
       )}
@@ -109,7 +109,7 @@ export function UsersManager({
       <div className="mb-4 flex justify-between">
         <Link
           href="/admin/statistics"
-          className="text-sm text-blue-600 hover:underline"
+          className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
         >
           Zur Statistik-/Logging-Auswertung →
         </Link>
@@ -124,21 +124,21 @@ export function UsersManager({
       {showInvite && (
         <form
           onSubmit={invite}
-          className="mb-6 grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-4 sm:grid-cols-4"
+          className="mb-6 grid grid-cols-1 gap-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 sm:grid-cols-4"
         >
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">
+            <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
               Name
             </label>
             <input
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm"
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">
+            <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
               E-Mail
             </label>
             <input
@@ -146,17 +146,17 @@ export function UsersManager({
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm"
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">
+            <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
               Rolle
             </label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as Role)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm"
             >
               <option value="DISPATCHER">{roleLabels.DISPATCHER}</option>
               <option value="ADMIN">{roleLabels.ADMIN}</option>
@@ -175,14 +175,14 @@ export function UsersManager({
             </button>
           </div>
           {error && (
-            <p className="col-span-full text-sm text-red-600">{error}</p>
+            <p className="col-span-full text-sm text-red-600 dark:text-red-400">{error}</p>
           )}
         </form>
       )}
 
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500">
+          <thead className="bg-slate-50 dark:bg-slate-900 text-left text-xs uppercase text-slate-500 dark:text-slate-400">
             <tr>
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">E-Mail</th>
@@ -192,10 +192,10 @@ export function UsersManager({
               <th className="px-4 py-3">Aktionen</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
             {users.map((u) => (
               <tr key={u.id}>
-                <td className="px-4 py-3 font-medium text-slate-900">
+                <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
                   <Link
                     href={`/admin/users/${u.id}`}
                     className="hover:underline"
@@ -203,14 +203,14 @@ export function UsersManager({
                     {u.name}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-slate-600">{u.email}</td>
+                <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{u.email}</td>
                 <td className="px-4 py-3">
                   <select
                     value={u.role}
                     onChange={(e) =>
                       changeRole(u, e.target.value as Role)
                     }
-                    className="rounded-md border border-slate-300 px-2 py-1 text-xs"
+                    className="rounded-md border border-slate-300 dark:border-slate-600 px-2 py-1 text-xs"
                   >
                     <option value="DISPATCHER">Disponent</option>
                     <option value="ADMIN">Administrator</option>
@@ -220,30 +220,30 @@ export function UsersManager({
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                       u.active
-                        ? "bg-green-100 text-green-700"
-                        : "bg-slate-200 text-slate-600"
+                        ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400"
+                        : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
                     }`}
                   >
                     {u.active ? "Aktiv" : "Deaktiviert"}
                   </span>
                   {!u.hasSetPassword && (
-                    <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                    <span className="ml-2 rounded-full bg-amber-100 dark:bg-amber-900 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
                       Einladung ausstehend
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-slate-600">{u.requestCount}</td>
+                <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{u.requestCount}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
                     <button
                       onClick={() => resetPassword(u)}
-                      className="rounded-md border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50"
+                      className="rounded-md border border-slate-300 dark:border-slate-600 px-2 py-1 text-xs hover:bg-slate-50 dark:hover:bg-slate-700"
                     >
                       {u.hasSetPassword ? "Passwort zurücksetzen" : "Einladung erneut senden"}
                     </button>
                     <button
                       onClick={() => toggleActive(u)}
-                      className="rounded-md border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50"
+                      className="rounded-md border border-slate-300 dark:border-slate-600 px-2 py-1 text-xs hover:bg-slate-50 dark:hover:bg-slate-700"
                     >
                       {u.active ? "Deaktivieren" : "Aktivieren"}
                     </button>

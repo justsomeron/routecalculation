@@ -12,8 +12,8 @@ export default async function OrganizationsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-900">Transporteure</h1>
-      <p className="mt-1 text-slate-500">
+      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Transporteure</h1>
+      <p className="mt-1 text-slate-500 dark:text-slate-400">
         Kreisverbände, Ortsvereine und externe Transporteure inkl.
         Fahrzeugausstattung, Ärzte, Tempurmatratze und Kunden-Zuordnung.
       </p>
