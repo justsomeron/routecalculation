@@ -84,6 +84,11 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
   const [showPreview, setShowPreview] = useState(false);
   const [previewOrgs, setPreviewOrgs] = useState<MapPreviewOrg[]>([]);
 
+  // Kartenvorschau und Notfalltransport sind Sonderfälle, kein Standard-Case
+  // - deshalb standardmäßig eingeklappt, damit sie den normalen
+  // Kalkulations-Ablauf nicht dominieren.
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   useEffect(() => {
     if (!showPreview) {
       setPreviewOrgs([]);
@@ -416,19 +421,6 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
                 </option>
               ))}
             </select>
-            <button
-              type="button"
-              onClick={() => setShowPreview((v) => !v)}
-              className={`mt-2 w-full rounded-md border px-3 py-1.5 text-xs font-medium ${
-                showPreview
-                  ? "border-blue-300 bg-blue-50 text-blue-700"
-                  : "border-slate-300 text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              {showPreview
-                ? `✓ Alle ${vehicleLabels[vehicleType]}-Standorte werden auf der Karte angezeigt`
-                : `Alle ${vehicleLabels[vehicleType]}-Standorte auf Karte anzeigen`}
-            </button>
           </div>
 
           <div className="flex gap-6">
@@ -450,14 +442,54 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
             </label>
           </div>
 
-          <label className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-            <input
-              type="checkbox"
-              checked={isEmergency}
-              onChange={(e) => setIsEmergency(e.target.checked)}
-            />
-            Notfalltransport (nur leistungsstarke Transporteure)
-          </label>
+          <div className="rounded-md border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced((v) => !v)}
+              className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+            >
+              <span>
+                Erweiterte Optionen
+                {(isEmergency || showPreview) && (
+                  <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-normal text-blue-700">
+                    aktiv
+                  </span>
+                )}
+              </span>
+              <span
+                className={`text-slate-400 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
+                aria-hidden
+              >
+                ▾
+              </span>
+            </button>
+            {showAdvanced && (
+              <div className="space-y-3 border-t border-slate-200 p-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPreview((v) => !v)}
+                  className={`w-full rounded-md border px-3 py-1.5 text-xs font-medium ${
+                    showPreview
+                      ? "border-blue-300 bg-blue-50 text-blue-700"
+                      : "border-slate-300 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {showPreview
+                    ? `✓ Alle ${vehicleLabels[vehicleType]}-Standorte werden auf der Karte angezeigt`
+                    : `Alle ${vehicleLabels[vehicleType]}-Standorte auf Karte anzeigen`}
+                </button>
+
+                <label className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                  <input
+                    type="checkbox"
+                    checked={isEmergency}
+                    onChange={(e) => setIsEmergency(e.target.checked)}
+                  />
+                  Notfalltransport (nur leistungsstarke Transporteure)
+                </label>
+              </div>
+            )}
+          </div>
 
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-600">
