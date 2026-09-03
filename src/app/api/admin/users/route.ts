@@ -8,7 +8,7 @@ import { getCurrentUser } from "@/lib/auth";
 const schema = z.object({
   email: z.string().email(),
   name: z.string().min(1),
-  role: z.enum(["ADMIN", "DISPATCHER"]),
+  role: z.enum(["ADMIN", "DISPATCHER", "BUSINESS_DEVELOPMENT"]),
 });
 
 export async function GET() {

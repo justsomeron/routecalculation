@@ -22,6 +22,7 @@ const schema = z.object({
   needsTemperingMattress: z.boolean().default(false),
   customerId: z.string().nullable().optional(),
   patientLegs: z.array(z.boolean()).optional(),
+  isEmergency: z.boolean().default(false),
 });
 
 export async function POST(req: NextRequest) {

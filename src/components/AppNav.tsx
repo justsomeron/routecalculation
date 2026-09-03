@@ -3,18 +3,32 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+type Role = "ADMIN" | "DISPATCHER" | "BUSINESS_DEVELOPMENT";
+
 type Props = {
   name: string;
-  role: "ADMIN" | "DISPATCHER";
+  role: Role;
 };
 
-const links = [
+const roleLabels: Record<Role, string> = {
+  ADMIN: "Administrator",
+  DISPATCHER: "Disponent",
+  BUSINESS_DEVELOPMENT: "Business Development",
+};
+
+// roles = wer den Link sieht; kein "roles" = für alle sichtbar.
+const links: { href: string; label: string; roles?: Role[] }[] = [
   { href: "/", label: "Routenkalkulation" },
-  { href: "/admin/organizations", label: "Transporteure", adminOnly: true },
-  { href: "/admin/customers", label: "Kunden", adminOnly: true },
-  { href: "/admin/users", label: "Benutzer", adminOnly: true },
-  { href: "/admin/statistics", label: "Statistik", adminOnly: true },
-  { href: "/admin/settings", label: "Einstellungen", adminOnly: true },
+  { href: "/admin/organizations", label: "Transporteure", roles: ["ADMIN"] },
+  { href: "/admin/customers", label: "Kunden", roles: ["ADMIN"] },
+  { href: "/admin/users", label: "Benutzer", roles: ["ADMIN"] },
+  { href: "/admin/statistics", label: "Statistik", roles: ["ADMIN"] },
+  { href: "/admin/settings", label: "Einstellungen", roles: ["ADMIN"] },
+  {
+    href: "/reports",
+    label: "Reports",
+    roles: ["ADMIN", "BUSINESS_DEVELOPMENT"],
+  },
 ];
 
 export function AppNav({ name, role }: Props) {
@@ -36,7 +50,7 @@ export function AppNav({ name, role }: Props) {
           </span>
           <nav className="flex gap-1">
             {links
-              .filter((l) => !l.adminOnly || role === "ADMIN")
+              .filter((l) => !l.roles || l.roles.includes(role))
               .map((l) => (
                 <Link
                   key={l.href}
@@ -54,7 +68,7 @@ export function AppNav({ name, role }: Props) {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-slate-500">
-            {name} · {role === "ADMIN" ? "Administrator" : "Disponent"}
+            {name} · {roleLabels[role]}
           </span>
           <button
             onClick={logout}

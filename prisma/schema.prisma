@@ -16,6 +16,7 @@ datasource db {
 enum Role {
   ADMIN
   DISPATCHER
+  BUSINESS_DEVELOPMENT
 }
 
 enum TokenPurpose {
@@ -92,6 +93,7 @@ model Organization {
   hasItw                  Boolean             @default(false)
   hasDoctor               Boolean             @default(false)
   hasTemperingMattress    Boolean             @default(false)
+  isHighPerformance       Boolean             @default(false)
   contactName             String?
   contactPhone            String?
   contactEmail            String?
@@ -153,6 +155,7 @@ model RouteRequest {
   vehicleType                 VehicleType
   needsDoctor                 Boolean                  @default(false)
   needsTemperingMattress      Boolean                  @default(false)
+  isEmergency                 Boolean                  @default(false)
   startAddress                String
   startLat                    Float
   startLng                    Float

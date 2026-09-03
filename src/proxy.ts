@@ -51,7 +51,16 @@ export async function proxy(req: NextRequest) {
 
   const isAdminPath =
     pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
-  if (isAdminPath && session.role !== "ADMIN") {
+  const isReportsPath =
+    pathname.startsWith("/reports") || pathname.startsWith("/api/reports");
+
+  const forbidden =
+    (isAdminPath && session.role !== "ADMIN") ||
+    (isReportsPath &&
+      session.role !== "ADMIN" &&
+      session.role !== "BUSINESS_DEVELOPMENT");
+
+  if (forbidden) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json(
         { error: "Keine Berechtigung" },

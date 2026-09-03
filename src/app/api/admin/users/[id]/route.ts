@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 
 const schema = z.object({
-  role: z.enum(["ADMIN", "DISPATCHER"]).optional(),
+  role: z.enum(["ADMIN", "DISPATCHER", "BUSINESS_DEVELOPMENT"]).optional(),
   active: z.boolean().optional(),
   name: z.string().min(1).optional(),
 });

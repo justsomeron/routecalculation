@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { AddressAutocomplete, AddressValue } from "@/components/AddressAutocomplete";
-import type { MapCandidate, MapPoint } from "@/components/RouteMap";
+import type { MapCandidate, MapPoint, MapPreviewOrg } from "@/components/RouteMap";
 
 const RouteMap = dynamic(
   () => import("@/components/RouteMap").then((m) => m.RouteMap),
@@ -21,9 +21,12 @@ const vehicleLabels: Record<VehicleType, string> = {
   ITW: "ITW",
 };
 
+type OrgType = "KREISVERBAND" | "ORTSVEREIN" | "EXTERN";
+
 type Candidate = {
   organizationId: string;
   organizationName: string;
+  organizationType: OrgType;
   street: string | null;
   postalCode: string | null;
   city: string | null;
@@ -62,10 +65,32 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
   const [vehicleType, setVehicleType] = useState<VehicleType>("KTW");
   const [needsDoctor, setNeedsDoctor] = useState(false);
   const [needsTemperingMattress, setNeedsTemperingMattress] = useState(false);
+  const [isEmergency, setIsEmergency] = useState(false);
   const [customerId, setCustomerId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  // Live-Vorschau: zeigt vor dem Berechnen bereits alle Transporteure mit
+  // dem gewählten Fahrzeugtyp bundesweit an, wenn der Disponent das aktiviert.
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewOrgs, setPreviewOrgs] = useState<MapPreviewOrg[]>([]);
+
+  useEffect(() => {
+    if (!showPreview) {
+      setPreviewOrgs([]);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/organizations/preview?vehicleType=${vehicleType}`)
+      .then((res) => res.json())
+      .then((data: MapPreviewOrg[]) => {
+        if (!cancelled) setPreviewOrgs(data);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [showPreview, vehicleType]);
 
   const [routeRequestId, setRouteRequestId] = useState<string | null>(null);
   const [routeGeometry, setRouteGeometry] = useState<GeoJSON.LineString | null>(null);
@@ -133,6 +158,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
           vehicleType,
           needsDoctor,
           needsTemperingMattress,
+          isEmergency,
           customerId: customerId || null,
           patientLegs,
         }),
@@ -172,6 +198,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
           organization: {
             lat: number;
             lng: number;
+            type: OrgType;
             street: string | null;
             postalCode: string | null;
             city: string | null;
@@ -179,6 +206,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
         }) => ({
           organizationId: c.organizationId ?? "",
           organizationName: c.organizationName,
+          organizationType: c.organization?.type ?? "EXTERN",
           street: c.organization?.street ?? null,
           postalCode: c.organization?.postalCode ?? null,
           city: c.organization?.city ?? null,
@@ -225,6 +253,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
     lng: c.lng,
     rank: i,
     name: c.organizationName,
+    type: c.organizationType,
   }));
 
   const routeLine: [number, number][] | null = routeGeometry
@@ -322,6 +351,19 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
                 </option>
               ))}
             </select>
+            <button
+              type="button"
+              onClick={() => setShowPreview((v) => !v)}
+              className={`mt-2 w-full rounded-md border px-3 py-1.5 text-xs font-medium ${
+                showPreview
+                  ? "border-blue-300 bg-blue-50 text-blue-700"
+                  : "border-slate-300 text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {showPreview
+                ? `✓ Alle ${vehicleLabels[vehicleType]}-Standorte werden auf der Karte angezeigt`
+                : `Alle ${vehicleLabels[vehicleType]}-Standorte auf Karte anzeigen`}
+            </button>
           </div>
 
           <div className="flex gap-6">
@@ -342,6 +384,15 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
               Tempurmatratze erforderlich
             </label>
           </div>
+
+          <label className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+            <input
+              type="checkbox"
+              checked={isEmergency}
+              onChange={(e) => setIsEmergency(e.target.checked)}
+            />
+            Notfalltransport (nur leistungsstarke Transporteure)
+          </label>
 
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-600">
@@ -390,7 +441,12 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
 
       <div className="space-y-4">
         <div className="h-[420px] overflow-hidden rounded-lg border border-slate-200">
-          <RouteMap waypoints={waypoints} routeLine={routeLine} candidates={mapCandidates} />
+          <RouteMap
+            waypoints={waypoints}
+            routeLine={routeLine}
+            candidates={mapCandidates}
+            previewOrgs={previewOrgs}
+          />
         </div>
 
         {candidates.length > 0 &&

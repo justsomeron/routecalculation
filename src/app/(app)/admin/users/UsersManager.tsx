@@ -3,11 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 
+type Role = "ADMIN" | "DISPATCHER" | "BUSINESS_DEVELOPMENT";
+
+const roleLabels: Record<Role, string> = {
+  ADMIN: "Administrator",
+  DISPATCHER: "Disponent",
+  BUSINESS_DEVELOPMENT: "Business Development",
+};
+
 type UserRow = {
   id: string;
   email: string;
   name: string;
-  role: "ADMIN" | "DISPATCHER";
+  role: Role;
   active: boolean;
   hasSetPassword: boolean;
   createdAt: string;
@@ -23,7 +31,7 @@ export function UsersManager({
   const [showInvite, setShowInvite] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState<"ADMIN" | "DISPATCHER">("DISPATCHER");
+  const [role, setRole] = useState<Role>("DISPATCHER");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -68,7 +76,7 @@ export function UsersManager({
     if (res.ok) await refresh();
   }
 
-  async function changeRole(u: UserRow, newRole: "ADMIN" | "DISPATCHER") {
+  async function changeRole(u: UserRow, newRole: Role) {
     const res = await fetch(`/api/admin/users/${u.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -147,11 +155,14 @@ export function UsersManager({
             </label>
             <select
               value={role}
-              onChange={(e) => setRole(e.target.value as "ADMIN" | "DISPATCHER")}
+              onChange={(e) => setRole(e.target.value as Role)}
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             >
-              <option value="DISPATCHER">Disponent</option>
-              <option value="ADMIN">Administrator</option>
+              <option value="DISPATCHER">{roleLabels.DISPATCHER}</option>
+              <option value="ADMIN">{roleLabels.ADMIN}</option>
+              <option value="BUSINESS_DEVELOPMENT">
+                {roleLabels.BUSINESS_DEVELOPMENT}
+              </option>
             </select>
           </div>
           <div className="flex items-end">
@@ -197,7 +208,7 @@ export function UsersManager({
                   <select
                     value={u.role}
                     onChange={(e) =>
-                      changeRole(u, e.target.value as "ADMIN" | "DISPATCHER")
+                      changeRole(u, e.target.value as Role)
                     }
                     className="rounded-md border border-slate-300 px-2 py-1 text-xs"
                   >

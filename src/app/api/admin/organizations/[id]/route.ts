@@ -20,6 +20,7 @@ const schema = z.object({
   hasItw: z.boolean().optional(),
   hasDoctor: z.boolean().optional(),
   hasTemperingMattress: z.boolean().optional(),
+  isHighPerformance: z.boolean().optional(),
   contactName: z.string().optional().nullable(),
   contactPhone: z.string().optional().nullable(),
   contactEmail: z.string().optional().nullable(),

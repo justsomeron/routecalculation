@@ -24,6 +24,7 @@ type Organization = {
   hasItw: boolean;
   hasDoctor: boolean;
   hasTemperingMattress: boolean;
+  isHighPerformance: boolean;
   contactName: string | null;
   contactPhone: string | null;
   contactEmail: string | null;
@@ -67,6 +68,7 @@ type FormState = {
   hasItw: boolean;
   hasDoctor: boolean;
   hasTemperingMattress: boolean;
+  isHighPerformance: boolean;
   contactName: string;
   contactPhone: string;
   contactEmail: string;
@@ -86,6 +88,7 @@ const emptyForm: FormState = {
   hasItw: false,
   hasDoctor: false,
   hasTemperingMattress: false,
+  isHighPerformance: false,
   contactName: "",
   contactPhone: "",
   contactEmail: "",
@@ -135,6 +138,7 @@ export function OrganizationsManager({
       hasItw: org.hasItw,
       hasDoctor: org.hasDoctor,
       hasTemperingMattress: org.hasTemperingMattress,
+      isHighPerformance: org.isHighPerformance,
       contactName: org.contactName ?? "",
       contactPhone: org.contactPhone ?? "",
       contactEmail: org.contactEmail ?? "",
@@ -173,6 +177,7 @@ export function OrganizationsManager({
       hasItw: form.hasItw,
       hasDoctor: form.hasDoctor,
       hasTemperingMattress: form.hasTemperingMattress,
+      isHighPerformance: form.isHighPerformance,
       contactName: form.contactName || null,
       contactPhone: form.contactPhone || null,
       contactEmail: form.contactEmail || null,
@@ -401,6 +406,19 @@ export function OrganizationsManager({
               />
               Tempurmatratze
             </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={form.isHighPerformance}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    isHighPerformance: e.target.checked,
+                  }))
+                }
+              />
+              Leistungsstark (für Notfalltransporte)
+            </label>
           </div>
 
           <div>
@@ -508,6 +526,7 @@ export function OrganizationsManager({
               <th className="px-4 py-3">Fahrzeuge</th>
               <th className="px-4 py-3">Ärzte</th>
               <th className="px-4 py-3">Tempur.</th>
+              <th className="px-4 py-3">Leistungsstark</th>
               <th className="px-4 py-3">Kunden</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Aktionen</th>
@@ -532,6 +551,9 @@ export function OrganizationsManager({
                 <td className="px-4 py-3">{org.hasDoctor ? "Ja" : "Nein"}</td>
                 <td className="px-4 py-3">
                   {org.hasTemperingMattress ? "Ja" : "Nein"}
+                </td>
+                <td className="px-4 py-3">
+                  {org.isHighPerformance ? "Ja" : "Nein"}
                 </td>
                 <td className="px-4 py-3 text-slate-600">
                   {org.customers.map((c) => c.customer.name).join(", ") || "—"}
@@ -573,7 +595,7 @@ export function OrganizationsManager({
             ))}
             {organizations.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={10} className="px-4 py-6 text-center text-slate-400">
                   Noch keine Transporteure angelegt.
                 </td>
               </tr>

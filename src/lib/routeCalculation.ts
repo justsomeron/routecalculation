@@ -25,6 +25,9 @@ export type RouteCalculationInput = {
   // stops.length + 1 entsprechen. Wird das Feld weggelassen, gilt die
   // gesamte Fahrt als Patiententransport (bisheriges Verhalten).
   patientLegs?: boolean[];
+  // Notfalltransport: zusätzlich nur Transporteure mit "Leistungsstark = Ja"
+  // berücksichtigen (weiterhin zusätzlich zu Fahrzeugtyp/Arzt/Tempurmatratze).
+  isEmergency?: boolean;
 };
 
 const VEHICLE_COLUMN: Record<VehicleType, string> = {
@@ -44,6 +47,7 @@ const MATRIX_BATCH_SIZE = 1000;
 type CandidateOrg = {
   id: string;
   name: string;
+  type: "KREISVERBAND" | "ORTSVEREIN" | "EXTERN";
   lat: number;
   lng: number;
   street: string | null;
@@ -62,12 +66,13 @@ async function findCandidateOrganizations(
   const vehicleColumn = VEHICLE_COLUMN[input.vehicleType];
 
   return prisma.$queryRaw<CandidateOrg[]>(Prisma.sql`
-    SELECT o.id, o.name, o.lat, o.lng, o.street, o."postalCode", o.city
+    SELECT o.id, o.name, o.type, o.lat, o.lng, o.street, o."postalCode", o.city
     FROM "Organization" o
     WHERE o.active = true
       AND o.${Prisma.raw(`"${vehicleColumn}"`)} = true
       AND (${input.needsDoctor} = false OR o."hasDoctor" = true)
       AND (${input.needsTemperingMattress} = false OR o."hasTemperingMattress" = true)
+      AND (${input.isEmergency ?? false} = false OR o."isHighPerformance" = true)
       AND (
         ${input.customerId ?? null}::text IS NULL
         OR EXISTS (
@@ -81,6 +86,7 @@ async function findCandidateOrganizations(
 export type RankedCandidate = {
   organizationId: string;
   organizationName: string;
+  organizationType: "KREISVERBAND" | "ORTSVEREIN" | "EXTERN";
   street: string | null;
   postalCode: string | null;
   city: string | null;
@@ -123,6 +129,7 @@ async function rankCandidates(
       ranked.push({
         organizationId: c.id,
         organizationName: c.name,
+        organizationType: c.type,
         street: c.street,
         postalCode: c.postalCode,
         city: c.city,
@@ -193,6 +200,7 @@ export async function calculateRoute(input: RouteCalculationInput) {
       vehicleType: input.vehicleType,
       needsDoctor: input.needsDoctor,
       needsTemperingMattress: input.needsTemperingMattress,
+      isEmergency: input.isEmergency ?? false,
       startAddress: input.start.address,
       startLat: input.start.lat,
       startLng: input.start.lng,
@@ -211,6 +219,8 @@ export async function calculateRoute(input: RouteCalculationInput) {
         })),
       },
       candidates: {
+        // Mindestens Top 3 (bzw. alle 5 im UI angezeigten) dauerhaft für die
+        // Statistik-Auswertung speichern, nicht nur den jeweils besten.
         create: ranked.map((r, i) => ({
           rank: i,
           organizationId: r.organizationId,
