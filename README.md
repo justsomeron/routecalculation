@@ -14,13 +14,23 @@ und Ziel.
   ja/nein, Kunden-Zuordnung, Standort per Adresssuche
 - **Excel-Import** für Transporteur-Stammdaten (Anlegen + Aktualisieren)
 - **Kundenverwaltung** (nicht jeder Verband fährt für jeden Kunden)
-- **Routenkalkulation**: Start/Ziel/Zwischenstopps per Adress-Autocomplete
-  (Photon/OSM), Routing über OpenRouteService, für **alle** passenden
-  Transporteure (bundesweit, kein Entfernungs-Vorfilter) wird der echte
-  Gesamtumlauf berechnet (Basis → Start → … → Ziel → zurück zur Basis),
-  Top-5-Liste mit „Mehr laden“
+- **Routenkalkulation**: Start/Ziel/bis zu 5 Zwischenstopps per
+  Adress-Autocomplete (Photon/OSM), Routing über OpenRouteService, für
+  **alle** passenden Transporteure (bundesweit, kein Entfernungs-Vorfilter)
+  wird der echte Gesamtumlauf berechnet (Basis → Start → … → Ziel → zurück
+  zur Basis), Top-5-Liste mit „Mehr laden“. Kartenmarker unterscheiden
+  DRK-Verband (grün) und Drittverband (gelb); optionale Live-Vorschau aller
+  Standorte eines Fahrzeugtyps auf der Karte vor der Berechnung
+- **Notfalltransport-Modus**: Suche eingeschränkt auf als „Leistungsstark“
+  markierte Verbände, in der Statistik gesondert gekennzeichnet, es werden
+  mindestens die Top 3 Transporteure je Anfrage getrackt
 - **Statistik/Logging**: Anfrageverlauf je Disponent (Benutzerprofil) und
-  aggregierte Auswertung für Administratoren
+  aggregierte Auswertung für Administratoren (inkl. Top-3-Transporteure und
+  Notfall-Kennzeichnung je Anfrage)
+- **Reports (Administratoren + Rolle „Business Development“)**: Monats-,
+  Jahres- oder frei wählbarer Zeitraum als präsentationsfertiges PDF
+  (Kennzahlen, Diagramm nach Fahrzeugtyp, Top-Transporteure, Auswertung nach
+  Kunde/Disponent) unter `/reports`
 - **Puffer-Staffel** (Einstellungen): Administratoren können einen nach
   Gesamtumlauf gestaffelten km-Aufschlag definieren (z. B. „< 50 km: kein
   Puffer, 50–150 km: 5 km, > 150 km: 15 km“), der auf den angezeigten
