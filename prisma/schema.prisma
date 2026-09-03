@@ -136,6 +136,18 @@ model BufferTier {
   @@index([customerId])
 }
 
+// Von Administratoren anpassbare Texte für System-E-Mails (Einladung,
+// Passwort-Reset). Fehlt für einen Zweck ein Eintrag, greift der
+// hartkodierte Standardtext aus src/lib/mail.ts - Administratoren müssen
+// also nichts konfigurieren, bevor die App nutzbar ist.
+model EmailTemplate {
+  id        String       @id @default(cuid())
+  purpose   TokenPurpose @unique
+  subject   String
+  bodyHtml  String
+  updatedAt DateTime     @updatedAt
+}
+
 model OrganizationCustomer {
   id             String       @id @default(cuid())
   organizationId String

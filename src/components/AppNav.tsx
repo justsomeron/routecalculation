@@ -18,6 +18,7 @@ const adminLinks = [
   { href: "/admin/users", label: "Benutzer" },
   { href: "/admin/statistics", label: "Statistik" },
   { href: "/admin/settings", label: "Puffer-Einstellungen" },
+  { href: "/admin/email-templates", label: "E-Mail-Vorlagen" },
 ];
 
 export function AppNav({ name, role }: Props) {

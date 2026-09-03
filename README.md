@@ -11,10 +11,14 @@ und Ziel.
 - **Login, Benutzerverwaltung, Einladungen, Passwort-Reset** (Administrator);
   jeder Benutzer kann zusätzlich unter „Einstellungen“ selbst sein eigenes
   Passwort ändern
+- **E-Mail-Vorlagen** (Administrator): Betreff und Inhalt der
+  System-E-Mails (Einladung, Passwort zurücksetzen) frei anpassbar, inkl.
+  Live-Vorschau, „Test-E-Mail an mich senden“ und Zurücksetzen auf den
+  Standardtext – ohne Anpassung werden sinnvolle Standardtexte verwendet
 - **Übersichtliches Menü**: Disponenten sehen nur die Routenkalkulation,
   Verwaltungsfunktionen (Transporteure, Kunden, Benutzer, Statistik,
-  Puffer-Einstellungen) sind für Administratoren in einem eigenen
-  „Administration“-Menü gebündelt
+  Puffer-Einstellungen, E-Mail-Vorlagen) sind für Administratoren in einem
+  eigenen „Administration“-Menü gebündelt
 - **Dunkelmodus**: umschaltbar über das Hell-/Dunkel-Symbol im Menü,
   Einstellung wird pro Gerät gespeichert
 - **Transporteur-Verwaltung**: Typ (Kreisverband/Ortsverein/Extern),
