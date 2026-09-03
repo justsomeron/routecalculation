@@ -59,9 +59,17 @@ function candidateAddress(c: Candidate): string | null {
 const FAR_RESULT_THRESHOLD_M = 150_000;
 
 export function RoutePlanner({ customers }: { customers: Customer[] }) {
-  const [start, setStart] = useState<AddressValue | null>(null);
-  const [stops, setStops] = useState<(AddressValue | null)[]>([]);
-  const [destination, setDestination] = useState<AddressValue | null>(null);
+  // Ein Punkt pro Halt: Index 0 ist immer "Start", der letzte Index immer
+  // "Ziel", alles dazwischen "Zwischenstopp". Die Reihenfolge (und damit,
+  // welcher Punkt gerade Start bzw. Ziel ist) wird per Drag & Drop verändert -
+  // es wird also nie eine Adresse "verschoben", sondern der ganze Punkt inkl.
+  // seiner Rolle in der Route.
+  const [points, setPoints] = useState<(AddressValue | null)[]>([null, null]);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [stale, setStale] = useState(false);
+  const start = points[0];
+  const destination = points[points.length - 1];
+  const stops = points.slice(1, -1);
   const [vehicleType, setVehicleType] = useState<VehicleType>("KTW");
   const [needsDoctor, setNeedsDoctor] = useState(false);
   const [needsTemperingMattress, setNeedsTemperingMattress] = useState(false);
@@ -124,11 +132,60 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
 
   function addStop() {
     if (stops.length >= 5) return;
-    setStops((s) => [...s, null]);
+    // Neuer Zwischenstopp wird direkt vor dem Ziel (letzter Punkt) eingefügt.
+    setPoints((p) => [...p.slice(0, -1), null, p[p.length - 1]]);
   }
 
   function removeStop(index: number) {
-    setStops((s) => s.filter((_, i) => i !== index));
+    // index bezieht sich auf die Position innerhalb der Zwischenstopps,
+    // in "points" liegt der Zwischenstopp an Position index + 1.
+    setPoints((p) => p.filter((_, i) => i !== index + 1));
+  }
+
+  function updatePoint(index: number, value: AddressValue | null) {
+    setPoints((p) => p.map((x, i) => (i === index ? value : x)));
+  }
+
+  function pointLabel(index: number) {
+    if (index === 0) return "Start";
+    if (index === points.length - 1) return "Ziel";
+    return `Zwischenstopp ${index}`;
+  }
+
+  function movePoint(from: number, to: number) {
+    if (from === to) return;
+    setPoints((p) => {
+      const arr = [...p];
+      const [item] = arr.splice(from, 1);
+      arr.splice(to, 0, item);
+      return arr;
+    });
+    // Nach dem Umsortieren beziehen sich die Teilstrecken auf komplett
+    // andere Punktepaare - sicherheitshalber wieder alles als
+    // Patiententransport markieren, statt falsche Haken zu übernehmen.
+    setPatientLegs(Array(points.length - 1).fill(true));
+    setStale(true);
+  }
+
+  function handleDragStart(index: number) {
+    return (e: React.DragEvent) => {
+      setDragIndex(index);
+      e.dataTransfer.effectAllowed = "move";
+    };
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  }
+
+  function handleDrop(index: number) {
+    return (e: React.DragEvent) => {
+      e.preventDefault();
+      if (dragIndex === null || dragIndex === index) return;
+      movePoint(dragIndex, index);
+      setDragIndex(null);
+    };
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -174,6 +231,7 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
       setPatientDistanceM(data.patientDistanceM);
       setTotalCandidates(data.totalCandidates);
       setCandidates(data.candidates);
+      setStale(false);
     } finally {
       setLoading(false);
     }
@@ -269,50 +327,64 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
           data-1p-ignore
           className="space-y-4 rounded-lg border border-slate-200 bg-white p-4"
         >
-          <AddressAutocomplete label="Start" value={start} onChange={setStart} placeholder="Abholadresse" />
-          {legsCount > 1 && (
-            <div className="-mt-2">
-              <label className="flex items-center gap-2 text-sm text-slate-600">
-                <input
-                  type="checkbox"
-                  checked={patientLegs[0] ?? true}
-                  onChange={() => toggleLeg(0)}
-                />
-                Patientenstrecke
-              </label>
-              <p className="mt-0.5 text-xs text-slate-400">
-                Markiert die Teilstrecke ab diesem Punkt (z. B. abwählen bei
-                einer Leerfahrt zum Abholen einer Medical Crew)
-              </p>
-            </div>
-          )}
+          <p className="text-xs text-slate-400">
+            Reihenfolge per Ziehen am Griff <span aria-hidden>⠿</span> anpassen
+            – der jeweils erste Punkt ist Start, der letzte Ziel. Mit
+            „Patientenstrecke“ markierst du, auf welchen Teilstrecken der
+            Patient tatsächlich mitfährt (z. B. abwählen bei einer Leerfahrt
+            zum Abholen einer Medical Crew).
+          </p>
 
-          {stops.map((s, i) => (
-            <div key={i}>
+          {points.map((p, i) => (
+            <div
+              key={i}
+              draggable
+              onDragStart={handleDragStart(i)}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop(i)}
+              onDragEnd={() => setDragIndex(null)}
+              className={`rounded-md ${
+                dragIndex === i ? "opacity-40" : ""
+              }`}
+            >
               <div className="flex items-end gap-2">
+                <span
+                  className="mb-2.5 cursor-move select-none px-1 text-slate-400 hover:text-slate-600"
+                  title="Ziehen zum Umsortieren"
+                  aria-hidden
+                >
+                  ⠿
+                </span>
                 <div className="flex-1">
                   <AddressAutocomplete
-                    label={`Zwischenstopp ${i + 1}`}
-                    value={s}
-                    onChange={(v) =>
-                      setStops((arr) => arr.map((x, idx) => (idx === i ? v : x)))
+                    label={pointLabel(i)}
+                    value={p}
+                    onChange={(v) => updatePoint(i, v)}
+                    placeholder={
+                      i === 0
+                        ? "Abholadresse"
+                        : i === points.length - 1
+                          ? "Zieladresse"
+                          : undefined
                     }
                   />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeStop(i)}
-                  className="mb-0.5 rounded-md border border-slate-300 px-2 py-2 text-xs text-slate-600 hover:bg-slate-50"
-                >
-                  Entfernen
-                </button>
+                {i > 0 && i < points.length - 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeStop(i - 1)}
+                    className="mb-0.5 rounded-md border border-slate-300 px-2 py-2 text-xs text-slate-600 hover:bg-slate-50"
+                  >
+                    Entfernen
+                  </button>
+                )}
               </div>
-              {legsCount > 1 && (
-                <label className="mt-1 flex items-center gap-2 text-sm text-slate-600">
+              {legsCount > 1 && i < points.length - 1 && (
+                <label className="mt-1 ml-7 flex items-center gap-2 text-sm text-slate-600">
                   <input
                     type="checkbox"
-                    checked={patientLegs[i + 1] ?? true}
-                    onChange={() => toggleLeg(i + 1)}
+                    checked={patientLegs[i] ?? true}
+                    onChange={() => toggleLeg(i)}
                   />
                   Patientenstrecke
                 </label>
@@ -328,13 +400,6 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
               + Zwischenstopp hinzufügen
             </button>
           )}
-
-          <AddressAutocomplete
-            label="Ziel"
-            value={destination}
-            onChange={setDestination}
-            placeholder="Zieladresse"
-          />
 
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-600">
@@ -414,12 +479,23 @@ export function RoutePlanner({ customers }: { customers: Customer[] }) {
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
+          {stale && routeRequestId && (
+            <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              Die Route wurde geändert – bitte neu berechnen, damit die
+              Ergebnisse aktuell sind.
+            </p>
+          )}
+
           <button
             type="submit"
             disabled={loading}
             className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
           >
-            {loading ? "Berechne Route…" : "Route berechnen"}
+            {loading
+              ? "Berechne Route…"
+              : stale && routeRequestId
+                ? "Route neu berechnen"
+                : "Route berechnen"}
           </button>
         </form>
 

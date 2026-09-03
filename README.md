@@ -15,12 +15,14 @@ und Ziel.
 - **Excel-Import** für Transporteur-Stammdaten (Anlegen + Aktualisieren)
 - **Kundenverwaltung** (nicht jeder Verband fährt für jeden Kunden)
 - **Routenkalkulation**: Start/Ziel/bis zu 5 Zwischenstopps per
-  Adress-Autocomplete (Photon/OSM), Routing über OpenRouteService, für
-  **alle** passenden Transporteure (bundesweit, kein Entfernungs-Vorfilter)
-  wird der echte Gesamtumlauf berechnet (Basis → Start → … → Ziel → zurück
-  zur Basis), Top-5-Liste mit „Mehr laden“. Kartenmarker unterscheiden
-  DRK-Verband (grün) und Drittverband (gelb); optionale Live-Vorschau aller
-  Standorte eines Fahrzeugtyps auf der Karte vor der Berechnung
+  Adress-Autocomplete (Photon/OSM), per Drag & Drop umsortierbar (Ziel vor
+  Start ziehen vertauscht die Rollen entsprechend), Routing über
+  OpenRouteService, für **alle** passenden Transporteure (bundesweit, kein
+  Entfernungs-Vorfilter) wird der echte Gesamtumlauf berechnet (Basis →
+  Start → … → Ziel → zurück zur Basis), Top-5-Liste mit „Mehr laden“.
+  Kartenmarker unterscheiden DRK-Verband (grün) und Drittverband (gelb);
+  optionale Live-Vorschau aller Standorte eines Fahrzeugtyps auf der Karte
+  vor der Berechnung
 - **Notfalltransport-Modus**: Suche eingeschränkt auf als „Leistungsstark“
   markierte Verbände, in der Statistik gesondert gekennzeichnet, es werden
   mindestens die Top 3 Transporteure je Anfrage getrackt
