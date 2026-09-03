@@ -82,6 +82,24 @@ function typeLabel(p: PhotonProperties): string | undefined {
   return TYPE_LABELS[`${p.osm_key}:${p.osm_value}`];
 }
 
+// Reine ÖPNV-Haltepunkte (Bus/Tram/Bahn) sind für die Adresseingabe fast nie
+// gemeint und tauchen wegen gleichlautender OSM-Namen oft mehrfach neben dem
+// eigentlichen Ziel auf (z.B. "Uniklinik Köln (Tram-Haltestelle)" zusätzlich
+// zu "Uniklinik Köln"). Echte Bahnhöfe (railway:station) bleiben bewusst
+// erhalten, da sie selbst ein sinnvolles Ziel für einen Transport sein können.
+const EXCLUDED_TYPES = new Set([
+  "highway:bus_stop",
+  "railway:tram_stop",
+  "railway:halt",
+  "public_transport:platform",
+  "public_transport:stop_position",
+]);
+
+function isExcludedType(p: PhotonProperties): boolean {
+  if (!p.osm_key || !p.osm_value) return false;
+  return EXCLUDED_TYPES.has(`${p.osm_key}:${p.osm_value}`);
+}
+
 // OSM-Namen sind nicht einheitlich benannt (z.B. "Düsseldorf Airport" auf
 // Englisch vs. "Flughafen Innsbruck" auf Deutsch) - hier je Label die
 // Begriffe, bei denen die Klammer redundant wäre.
@@ -139,7 +157,9 @@ export async function geocodeAddress(
 
   const result = await throttled(async () => {
     try {
-      const res = await fetch(photonUrl(normalized, 1), {
+      // limit > 1, damit bei Ausschluss eines ÖPNV-Haltepunkts (siehe
+      // isExcludedType) noch ein echtes Ziel als Alternative übrig bleibt.
+      const res = await fetch(photonUrl(normalized, 5), {
         headers: photonHeaders(),
       });
       if (!res.ok) {
@@ -147,7 +167,7 @@ export async function geocodeAddress(
         return null;
       }
       const data = (await res.json()) as { features: PhotonFeature[] };
-      const feature = data.features?.[0];
+      const feature = (data.features ?? []).find((f) => !isExcludedType(f.properties));
       if (!feature) return null;
       return {
         lat: feature.geometry.coordinates[1],
@@ -178,7 +198,9 @@ export async function searchAddress(
 
   return throttled(async () => {
     try {
-      const res = await fetch(photonUrl(normalized, 6), {
+      // Etwas mehr als die gewünschten ~6 anzeigbaren Treffer anfragen, da
+      // ÖPNV-Haltepunkte (siehe isExcludedType) danach herausgefiltert werden.
+      const res = await fetch(photonUrl(normalized, 10), {
         headers: photonHeaders(),
       });
       if (!res.ok) {
@@ -186,11 +208,13 @@ export async function searchAddress(
         return [];
       }
       const data = (await res.json()) as { features: PhotonFeature[] };
-      return (data.features ?? []).map((f) => ({
-        displayName: formatFeature(f.properties),
-        lat: f.geometry.coordinates[1],
-        lng: f.geometry.coordinates[0],
-      }));
+      return (data.features ?? [])
+        .filter((f) => !isExcludedType(f.properties))
+        .map((f) => ({
+          displayName: formatFeature(f.properties),
+          lat: f.geometry.coordinates[1],
+          lng: f.geometry.coordinates[0],
+        }));
     } catch (err) {
       console.error(`Photon nicht erreichbar für "${normalized}":`, err);
       return [];
